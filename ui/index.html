@@ -1914,7 +1914,7 @@ function paintInput() {
     const chip = $('#chk-' + k); if (chip) chip.classList.toggle('is-now', on);
   }
   for (const side of ['l', 'r']) {
-    const st = T.stick[side], tf = 'translate(' + (st.nx * 9).toFixed(2) + 'px,' + (st.ny * 9).toFixed(2) + 'px)';
+    const sx = clamp((IN.sticks[side + 'x'] - 128) / 127.5, -1, 1), sy = clamp((IN.sticks[side + 'y'] - 128) / 127.5, -1, 1), tf = 'translate(' + (sx * 9).toFixed(2) + 'px,' + (sy * 9).toFixed(2) + 'px)';
     if (tf !== lastStk[side]) { lastStk[side] = tf; $('#stk' + side.toUpperCase()).style.transform = tf; }
   }
   const now = performance.now();

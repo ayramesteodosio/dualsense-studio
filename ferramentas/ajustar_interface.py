@@ -63,6 +63,9 @@ def patch_tester(html):
         (r"  if \(Math\.hypot\(IN\.gyro\[0\], IN\.gyro\[1\], IN\.gyro\[2\]\) > 3\)",
          "  if (ttab === 'motion' && Math.hypot(IN.gyro[0], IN.gyro[1], IN.gyro[2]) > 3)"),
         (r"  if \(am > 0\.5 && am < 1\.8\) T\.accelSeen", "  if (ttab === 'motion' && am > 0.5 && am < 1.8) T.accelSeen"),
+        (r"const st = T\.stick\[side\], tf = 'translate\(' \+ \(st\.nx \* 9\)\.toFixed\(2\) \+ 'px,' \+ \(st\.ny \* 9\)",
+         "const sx = clamp((IN.sticks[side + 'x'] - 128) / 127.5, -1, 1), sy = clamp((IN.sticks[side + 'y'] - 128) / 127.5, -1, 1), "
+         "tf = 'translate(' + (sx * 9).toFixed(2) + 'px,' + (sy * 9)"),
     ]
     for pattern, repl in rules:
         html = sub_once(html, pattern, lambda m, r=repl: r, pattern[:40])
