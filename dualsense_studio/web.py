@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import sys
 import threading
 
@@ -10,6 +11,8 @@ from dualsense_painel.loop import ThreadLoop
 from dualsense_painel.session import Listener, Session, acquire_lock
 
 from .bridge import Bridge
+
+USER_AGENT = "Mozilla/5.0 DualSenseStudio"
 
 
 def ui_path():
@@ -127,12 +130,10 @@ def main():
         webview.start()
         return 1
     host = Host()
-    url = "file://" + ui_path().replace("\\", "/") + "?host=pywebview"
-    if not url.startswith("file:///"):
-        url = url.replace("file://", "file:///", 1)
+    url = pathlib.Path(ui_path()).resolve().as_uri()
     window = webview.create_window("DualSense Studio", url=url, js_api=Api(host), width=1180, height=760,
                                    min_size=(960, 640), background_color="#05070f")
     host.window = window
     window.events.closing += host.shutdown
-    webview.start(host.start, debug=bool(os.environ.get("DS_DEVTOOLS")))
+    webview.start(host.start, debug=bool(os.environ.get("DS_DEVTOOLS")), user_agent=USER_AGENT)
     return 0

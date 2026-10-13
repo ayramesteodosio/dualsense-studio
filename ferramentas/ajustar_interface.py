@@ -76,7 +76,7 @@ SEND_JS = (
     "  const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ds;\n"
     "  if (h) { try { h.postMessage(msg); } catch (e) { console.error(e); } return; }\n"
     "  if (window.pywebview && window.pywebview.api) { window.pywebview.api.send(msg); return; }\n"
-    "  if (/host=pywebview/.test(location.search)) { (window.dsQueue = window.dsQueue || []).push(msg); return; }\n"
+    "  if (/host=pywebview/.test(location.search) || /DualSenseStudio/.test(navigator.userAgent)) { (window.dsQueue = window.dsQueue || []).push(msg); return; }\n"
     "  Mock.handle(type, payload);\n"
     "}\n"
     "window.addEventListener('pywebviewready', () => { const q = window.dsQueue || []; window.dsQueue = []; "

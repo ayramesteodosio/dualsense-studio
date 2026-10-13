@@ -1122,7 +1122,7 @@ function send(type, payload) {
   const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ds;
   if (h) { try { h.postMessage(msg); } catch (e) { console.error(e); } return; }
   if (window.pywebview && window.pywebview.api) { window.pywebview.api.send(msg); return; }
-  if (/host=pywebview/.test(location.search)) { (window.dsQueue = window.dsQueue || []).push(msg); return; }
+  if (/host=pywebview/.test(location.search) || /DualSenseStudio/.test(navigator.userAgent)) { (window.dsQueue = window.dsQueue || []).push(msg); return; }
   Mock.handle(type, payload);
 }
 window.addEventListener('pywebviewready', () => { const q = window.dsQueue || []; window.dsQueue = []; q.forEach(m => window.pywebview.api.send(m)); });
