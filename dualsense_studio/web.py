@@ -7,7 +7,7 @@ import time
 
 import webview
 
-from dualsense_painel import atualizacao, config, segundo_plano
+from dualsense_painel import atualizacao, config, plataforma, segundo_plano
 from dualsense_painel.loop import ThreadLoop
 from dualsense_painel.session import Listener, Session
 
@@ -15,6 +15,11 @@ from .bridge import Bridge
 from .versao import VERSAO
 
 USER_AGENT = "Mozilla/5.0 DualSenseStudio"
+
+
+def recurso(*partes):
+    base = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, *partes)
 
 
 def ui_path():
@@ -42,6 +47,8 @@ class Host(Listener):
         self.bridge = Bridge(self.session, self.emit, save_report=self.save_report, ao_instalar=self.instalar_versao,
                              ao_sair=self.sair)
         self.saindo = False
+        self.icone = None
+        self._avisou_fundo = False
 
     def emit(self, message):
         if not self.ready or not self.window:
@@ -151,9 +158,43 @@ class Host(Listener):
         fica = self.session.cfg["segundo_plano"] or (self.session.charging_mode and self.session.connected)
         if fica and not self.saindo:
             threading.Thread(target=self.window.hide, daemon=True).start()
+            self._avisar_fundo()
             return False
         self.shutdown()
         return None
+
+    def _avisar_fundo(self):
+        if self.icone and not self._avisou_fundo:
+            self._avisou_fundo = True
+            try:
+                self.icone.notify("Ele segue no ícone perto do relógio. Para fechar de vez, use Sair.",
+                                  "O Studio continua rodando")
+            except Exception:
+                pass
+
+    def bandeja(self):
+        if plataforma.LINUX:
+            return
+        try:
+            import pystray
+            from PIL import Image
+            imagem = Image.open(recurso("icones", "dualsense-studio.png"))
+        except Exception:
+            return
+
+        def alternar_carga():
+            self.loop.idle_add(lambda: self.session.set_charging(not self.session.charging_mode) or False)
+
+        menu = pystray.Menu(
+            pystray.MenuItem("Abrir o Studio", lambda: self.comando_canal("mostrar"), default=True),
+            pystray.MenuItem(lambda _i: "Voltar ao modo normal" if self.session.charging_mode
+                             else "Entrar no modo carregar", alternar_carga),
+            pystray.MenuItem("Sair", lambda: self.sair()))
+        try:
+            self.icone = pystray.Icon("dualsense-studio", imagem, "DualSense Studio", menu)
+            self.icone.run_detached()
+        except Exception:
+            self.icone = None
 
     def comando_canal(self, comando):
         if comando == "mostrar":
@@ -167,6 +208,11 @@ class Host(Listener):
 
     def sair(self):
         self.saindo = True
+        if self.icone:
+            try:
+                self.icone.stop()
+            except Exception:
+                pass
         threading.Thread(target=self._fechar, daemon=True).start()
 
     def shutdown(self):
@@ -204,5 +250,6 @@ def main():
     host.window = window
     window.events.closing += host.ao_fechar
     segundo_plano.Canal("dualsense-studio", lock, host.comando_canal)
+    host.bandeja()
     webview.start(host.start, debug=bool(os.environ.get("DS_DEVTOOLS")), user_agent=USER_AGENT)
     return 0
