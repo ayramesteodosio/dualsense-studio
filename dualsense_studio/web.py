@@ -3,12 +3,13 @@ import os
 import pathlib
 import sys
 import threading
+import time
 
 import webview
 
-from dualsense_painel import atualizacao, config
+from dualsense_painel import atualizacao, config, segundo_plano
 from dualsense_painel.loop import ThreadLoop
-from dualsense_painel.session import Listener, Session, acquire_lock
+from dualsense_painel.session import Listener, Session
 
 from .bridge import Bridge
 from .versao import VERSAO
@@ -38,7 +39,9 @@ class Host(Listener):
         self.window = None
         self.ready = False
         self.session = Session(config.load(), self, loop=self.loop)
-        self.bridge = Bridge(self.session, self.emit, save_report=self.save_report, ao_instalar=self.instalar_versao)
+        self.bridge = Bridge(self.session, self.emit, save_report=self.save_report, ao_instalar=self.instalar_versao,
+                             ao_sair=self.sair)
+        self.saindo = False
 
     def emit(self, message):
         if not self.ready or not self.window:
@@ -125,16 +128,51 @@ class Host(Listener):
     def instalar_versao(self, caminho):
         if not atualizacao.instalar("dualsense-studio", caminho):
             return False
+        self.saindo = True
         threading.Timer(0.8, self._fechar).start()
         return True
 
     def _fechar(self):
+        if not self.window.events.shown.is_set():
+            self.shutdown()
+            try:
+                self.window.gui.destroy_window(self.window.uid)
+            except Exception:
+                pass
+            time.sleep(0.5)
+            os._exit(0)
         try:
             self.window.destroy()
         except Exception:
+            self.shutdown()
             os._exit(0)
 
+    def ao_fechar(self):
+        fica = self.session.cfg["segundo_plano"] or (self.session.charging_mode and self.session.connected)
+        if fica and not self.saindo:
+            threading.Thread(target=self.window.hide, daemon=True).start()
+            return False
+        self.shutdown()
+        return None
+
+    def comando_canal(self, comando):
+        if comando == "mostrar":
+            self.window.hidden = False
+            try:
+                self.window.gui.show(self.window.uid)
+            except Exception:
+                self.window.show()
+        else:
+            self.sair()
+
+    def sair(self):
+        self.saindo = True
+        threading.Thread(target=self._fechar, daemon=True).start()
+
     def shutdown(self):
+        if getattr(self, "_desligado", False):
+            return
+        self._desligado = True
         self.ready = False
         try:
             self.loop.call_sync(self._shutdown)
@@ -147,19 +185,24 @@ class Host(Listener):
 
 
 def main():
-    lock = acquire_lock()
+    escondido = segundo_plano.FLAG in sys.argv
+    estado, lock = segundo_plano.obter_controle("dualsense-studio", escondido=escondido)
+    if estado == "mostrado" or (estado != "livre" and escondido):
+        return 0
     if lock is None:
         webview.create_window("DualSense Studio", html=(
             "<body style='font:15px system-ui;background:#0b0e18;color:#e6e8ef;display:grid;place-items:center;"
             "height:100vh;margin:0'><div style='text-align:center'><h2>O controle já está sendo usado</h2>"
-            "<p>Feche o outro app do DualSense para usar o Studio.</p></div></body>"), width=480, height=240)
+            "<p>Não consegui assumir o controle. Feche o outro app do DualSense e tente de novo.</p></div></body>"),
+            width=480, height=240)
         webview.start()
         return 1
     host = Host()
     url = pathlib.Path(ui_path()).resolve().as_uri()
     window = webview.create_window("DualSense Studio", url=url, js_api=Api(host), width=1180, height=760,
-                                   min_size=(960, 640), background_color="#05070f")
+                                   min_size=(960, 640), background_color="#05070f", hidden=escondido)
     host.window = window
-    window.events.closing += host.shutdown
+    window.events.closing += host.ao_fechar
+    segundo_plano.Canal("dualsense-studio", lock, host.comando_canal)
     webview.start(host.start, debug=bool(os.environ.get("DS_DEVTOOLS")), user_agent=USER_AGENT)
     return 0

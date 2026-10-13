@@ -30,10 +30,15 @@ Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "autostart"; Description: "Iniciar com o Windows (abre escondido, para o modo carregar e os avisos funcionarem sozinhos)"; GroupDescription: "Complementos:"; Flags: unchecked
 Name: "hidhide"; Description: "Instalar o HidHide (recomendado): no modo carregar, esconde o controle dos jogos e da Steam"; GroupDescription: "Complementos:"; Check: not HidHideInstalado
 
 [Files]
 Source: "..\dist\DualSense Studio\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Registry]
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "DualSense Studio"; ValueData: """{app}\DualSense Studio.exe"" --segundo-plano"; Flags: uninsdeletevalue; Tasks: autostart; Check: not WizardSilent
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "Painel do DualSense"; Flags: deletevalue; Tasks: autostart; Check: not WizardSilent
 
 [Icons]
 Name: "{autoprograms}\DualSense Studio"; Filename: "{app}\DualSense Studio.exe"
@@ -57,6 +62,12 @@ end;
 procedure InitializeWizard;
 begin
   Baixar := CreateDownloadPage('Baixando o HidHide', 'Aguarde enquanto o HidHide é baixado do site oficial.', nil);
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usPostUninstall then
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\Microsoft\Windows\CurrentVersion\Run', 'DualSense Studio');
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;

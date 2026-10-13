@@ -24,6 +24,10 @@ interface.
 - Informações: modelo, cor de fábrica, placa (BDM), número de série, firmware, hardware, MAC, conexão e
   bateria.
 - Perfis, histórico de bateria, aviso de bateria baixa e desligamento por inatividade no Bluetooth.
+- Segundo plano: ao fechar a janela o app continua rodando (dá para desligar nos Ajustes), com modo
+  carregar automático, avisos de bateria e atalho funcionando. "Iniciar com o sistema" é opcional, no
+  instalador do Windows ou nos Ajustes. Só um app usa o controle por vez: abrir o outro faz o primeiro
+  soltar o controle e fechar.
 
 <table>
 <tr>
@@ -71,8 +75,7 @@ cd dualsense-studio
 ./dualsense-studio     # ou "DualSense Studio" no menu
 ```
 
-Precisa de GTK 3 e WebKitGTK 4.0 ou 4.1. Só um app
-controla o controle por vez: se o painel já estiver aberto, o Studio avisa e não sobe.
+Precisa de GTK 3 e WebKitGTK 4.0 ou 4.1. 
 
 ## Sistemas
 

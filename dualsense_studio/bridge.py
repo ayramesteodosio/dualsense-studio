@@ -1,4 +1,6 @@
-from dualsense_painel import atualizacao, audio, charge_light, profiles
+import os
+
+from dualsense_painel import atualizacao, audio, charge_light, profiles, segundo_plano
 from dualsense_painel.protocol import MODES_BY_KEY
 
 from .versao import VERSAO
@@ -22,8 +24,9 @@ def _color(value, default):
 
 
 class Bridge:
-    def __init__(self, session, emit, save_report=None, audio_backend=audio, ao_instalar=None):
+    def __init__(self, session, emit, save_report=None, audio_backend=audio, ao_instalar=None, ao_sair=None):
         self.session = session
+        self.ao_sair = ao_sair
         self.ao_instalar = ao_instalar
         self.versao_nova = None
         self.cfg = session.cfg
@@ -55,6 +58,8 @@ class Bridge:
                 "autoCharge": c["auto_charge"],
                 "lightbarMode": c["lightbar_mode"],
                 "shortcut": c["shortcut"],
+                "background": c["segundo_plano"],
+                "autostart": segundo_plano.ativo("dualsense-studio"),
                 "lowBattery": c["low_battery"],
                 "idleOff": c["idle_off"],
                 "profiles": profiles.summary(c),
@@ -211,6 +216,22 @@ class Bridge:
         if p.get("mode") in ("fixed", "battery"):
             self.cfg["lightbar_mode"] = p["mode"]
             self._changed()
+
+    def _cmd_setBackground(self, p):
+        self.cfg["segundo_plano"] = bool(p.get("on"))
+        self._changed()
+
+    def _cmd_setAutostart(self, p):
+        raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        try:
+            segundo_plano.definir("dualsense-studio", bool(p.get("on")), raiz)
+        except OSError as e:
+            self.emit({"type": "toast", "text": f"Não consegui mudar: {e.strerror or e}"})
+        self.publish()
+
+    def _cmd_quitApp(self, _p):
+        if self.ao_sair:
+            self.ao_sair()
 
     def _cmd_setShortcut(self, p):
         self.cfg["shortcut"] = bool(p.get("on"))
