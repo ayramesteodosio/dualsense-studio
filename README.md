@@ -112,9 +112,10 @@ carregar, o app continua em segundo plano.
   pywebview (Windows e macOS).
 - `dualsense_studio/bridge.py` traduz as mensagens da interface para o `Session` do painel.
 
-**Foto do controle (opcional, só local).** Com `--foto`, o script troca o desenho por uma foto: coloque
+**Foto do controle (opcional).** Com `--foto`, o script troca o desenho por uma foto: coloque
 `ui/dualsense-base.png` e a máscara da barra de luz `ui/dualsense-lightbar.png` e gere
-`ui/index-foto.html`. Se os três arquivos existirem, o app usa essa versão. Eles ficam fora do git.
+`ui/index-foto.html`. Se os três arquivos existirem, o app usa essa versão. Use uma foto sua, não
+material de divulgação da Sony. Por enquanto esses arquivos ficam fora do git.
 
 **Mensagens.** Da interface para o app, `window.webkit.messageHandlers.ds.postMessage(...)` no Linux ou
 `window.pywebview.api.send(...)` fora dele, sempre com `JSON.stringify({type, payload})`: `ready`,
@@ -145,6 +146,12 @@ Os ícones saem de `dados/com.ayrames.DualSenseStudio.svg` com `python3 ferramen
 (precisa de cairosvg e Pillow).
 
 </details>
+
+## Aviso
+
+Projeto independente, sem relação com a Sony Interactive Entertainment. DualSense, PlayStation e
+DualShock são marcas da Sony Interactive Entertainment Inc. e aparecem aqui só para indicar com qual
+controle o app funciona.
 
 ## Testes
 

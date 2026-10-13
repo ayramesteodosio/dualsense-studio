@@ -116,6 +116,13 @@ def patch_info(html):
     return sub_once(html, r"</style>", css + "</style>", "estilo info")
 
 
+def patch_marcas(html):
+    html = sub_once(html, r'<g transform="translate\(600 305\) scale\(\.62\)" style="fill:url\(#gPsLogo\);(stroke:[^"]*)"[^>]*>.*?</g>',
+                    lambda m: f'<circle cx="600" cy="305" r="17" style="fill:url(#gPsLogo);{m.group(1)}" stroke-width="1.2"/>',
+                    "logo PS")
+    return sub_once(html, r'<g clip-path="url\(#clipBody\)"><rect [^>]*fill="url\(#psTex\)"[^>]*/></g>', "", "textura")
+
+
 def patch(html):
     defs = (
         f'<mask id="mLightbar" maskUnits="userSpaceOnUse" x="{PHOTO["x"]}" y="{PHOTO["y"]}" '
@@ -157,8 +164,7 @@ def main():
     src, dst = args
     with open(src, encoding="utf-8") as f:
         html = f.read()
-    if "--foto" in sys.argv:
-        html = patch_layers(patch(html))
+    html = patch_layers(patch(html)) if "--foto" in sys.argv else patch_marcas(html)
     with open(dst, "w", encoding="utf-8") as f:
         f.write(patch_host(patch_tester(patch_info(html))))
     print(f"ok: {dst}")
