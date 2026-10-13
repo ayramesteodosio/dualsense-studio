@@ -13,10 +13,11 @@ except ValueError:
     gi.require_version("WebKit2", "4.1")
 from gi.repository import Gdk, Gio, GLib, Gtk, WebKit2
 
-from dualsense_painel import config
+from dualsense_painel import atualizacao, config
 from dualsense_painel.session import Session, acquire_lock
 
 from .bridge import Bridge
+from .versao import VERSAO
 
 APP_ID = "com.ayrames.DualSenseStudio"
 UI_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui")
@@ -131,6 +132,8 @@ class App(Gtk.Application):
         self.window = None
         self._held = False
         self._lock = None
+        self._url_versao = None
+        self._checando = False
 
     def _busy(self):
         dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.CLOSE,
@@ -163,11 +166,37 @@ class App(Gtk.Application):
                 return
         if not self.window:
             self.window = Window(self)
+        if not self._checando:
+            self._checando = True
+            GLib.timeout_add_seconds(5, self._checar_versao)
+            GLib.timeout_add_seconds(24 * 3600, self._checar_versao, True)
         if self._held:
             self.release()
             self._held = False
         self.window.show()
         self.window.present()
+
+    def _checar_versao(self, repetir=False):
+        atualizacao.verificar("dualsense-studio", VERSAO,
+                              lambda tag, url: GLib.idle_add(self._nova_versao, tag, url))
+        return repetir
+
+    def _nova_versao(self, tag, url):
+        if url == self._url_versao or not self.window:
+            return False
+        self._url_versao = url
+        dialog = Gtk.MessageDialog(transient_for=self.window, modal=True, message_type=Gtk.MessageType.INFO,
+                                   buttons=Gtk.ButtonsType.NONE, text=f"Versão {tag} disponível")
+        dialog.format_secondary_text("Há uma versão nova do DualSense Studio. Quer abrir a página de download?")
+        dialog.add_buttons("Agora não", Gtk.ResponseType.CANCEL, "Baixar", Gtk.ResponseType.ACCEPT)
+
+        def resposta(d, r):
+            d.destroy()
+            if r == Gtk.ResponseType.ACCEPT:
+                Gtk.show_uri_on_window(self.window, url, Gdk.CURRENT_TIME)
+        dialog.connect("response", resposta)
+        dialog.show()
+        return False
 
     def hold_in_background(self):
         if not self._held:

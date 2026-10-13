@@ -47,6 +47,9 @@ Pegue o arquivo do seu sistema na [última versão](https://github.com/ayrameste
 | macOS com Intel | `DualSense-Studio-macos-intel.dmg` | Abra e arraste o app para Aplicativos |
 | Ubuntu, Debian, Mint e derivados | `dualsense-studio_<versão>_all.deb` | Dois cliques, ou `sudo apt install ./dualsense-studio_*.deb` |
 
+No Windows, o instalador oferece instalar junto o [HidHide](https://github.com/nefarius/HidHide), que deixa o modo
+carregar esconder o controle dos jogos e da Steam. Os apps avisam sozinhos quando sai uma versão nova.
+
 O app não tem assinatura digital, então o sistema avisa na primeira vez:
 
 - Windows: em "O Windows protegeu o computador", clique em **Mais informações** e **Executar assim mesmo**.

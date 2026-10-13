@@ -12,6 +12,7 @@ mkdir -p "$PKG/DEBIAN" "$APP/ui" "$PKG/usr/bin" "$PKG/usr/share/applications" "$
 cp -r "$RAIZ/dualsense_studio" "$PAINEL/dualsense_painel" "$APP/"
 cp "$RAIZ/ui/index.html" "$APP/ui/"
 find "$APP" -name __pycache__ -prune -exec rm -rf {} +
+printf 'VERSAO = "%s"\n' "$VERSAO" > "$APP/dualsense_studio/versao.py"
 rm -rf "$APP/dualsense_painel/qt" "$APP/dualsense_studio/web.py"
 
 cat > "$PKG/usr/bin/dualsense-studio" <<'SH'

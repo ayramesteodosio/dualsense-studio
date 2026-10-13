@@ -35,6 +35,9 @@ jobs:
       - name: Versão
         shell: bash
         run: echo "VERSAO=$([[ "$GITHUB_REF" == refs/tags/v* ]] && echo "${GITHUB_REF_NAME#v}" || echo 0.0.0)" >> "$GITHUB_ENV"
+      - name: Versão no código
+        shell: bash
+        run: printf 'VERSAO = "%s"\n' "$VERSAO" > dualsense-studio/dualsense_studio/versao.py
       - name: Dependências
         run: |
           python -m pip install --upgrade pip

@@ -3,14 +3,16 @@ import os
 import pathlib
 import sys
 import threading
+import webbrowser
 
 import webview
 
-from dualsense_painel import config
+from dualsense_painel import atualizacao, config
 from dualsense_painel.loop import ThreadLoop
 from dualsense_painel.session import Listener, Session, acquire_lock
 
 from .bridge import Bridge
+from .versao import VERSAO
 
 USER_AGENT = "Mozilla/5.0 DualSenseStudio"
 
@@ -108,6 +110,24 @@ class Host(Listener):
     def start(self):
         self.loop.start()
         self.loop.idle_add(lambda: self.session.start() and False)
+        self.loop.timeout_add(5000, self._checar_versao)
+        self.loop.timeout_add_seconds(24 * 3600, self._checar_versao, True)
+
+    def _checar_versao(self, repetir=False):
+        atualizacao.verificar("dualsense-studio", VERSAO, self._nova_versao)
+        return repetir
+
+    def _nova_versao(self, tag, url):
+        if url == getattr(self, "_url_versao", None) or not self.window:
+            return
+        self._url_versao = url
+        try:
+            sim = self.window.create_confirmation_dialog(
+                f"Versão {tag} disponível", "Há uma versão nova do DualSense Studio. Quer abrir a página de download?")
+        except Exception:
+            sim = False
+        if sim:
+            webbrowser.open(url)
 
     def shutdown(self):
         try:
