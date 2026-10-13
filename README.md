@@ -38,16 +38,25 @@ interface.
 
 ## Baixar
 
-| Sistema | Como |
-|---|---|
-| Linux | Clone os dois repos e rode `./instalar.sh` (veja abaixo) |
-| Windows | `.zip` em [Releases](https://github.com/ayramesteodosio/dualsense-studio/releases) |
-| macOS (Apple Silicon e Intel) | `.zip` com o `.app` em [Releases](https://github.com/ayramesteodosio/dualsense-studio/releases) |
+Pegue o arquivo do seu sistema na [última versão](https://github.com/ayramesteodosio/dualsense-studio/releases/latest):
+
+| Sistema | Arquivo | Como instalar |
+|---|---|---|
+| Windows 10 e 11 | `DualSense-Studio-windows.exe` | Abra e siga o instalador |
+| macOS com chip Apple | `DualSense-Studio-macos-arm64.dmg` | Abra e arraste o app para Aplicativos |
+| macOS com Intel | `DualSense-Studio-macos-intel.dmg` | Abra e arraste o app para Aplicativos |
+| Ubuntu, Debian, Mint e derivados | `dualsense-studio_<versão>_all.deb` | Dois cliques, ou `sudo apt install ./dualsense-studio_*.deb` |
+
+O app não tem assinatura digital, então o sistema avisa na primeira vez:
+
+- Windows: em "O Windows protegeu o computador", clique em **Mais informações** e **Executar assim mesmo**.
+- macOS: se o Mac não deixar abrir, vá em **Ajustes do Sistema > Privacidade e Segurança** e clique em
+  **Abrir Mesmo Assim**.
 
 Windows e macOS ainda não foram testados em máquinas reais, só com um controle simulado e com o pacote
 rodando no Linux. Se algo não funcionar, abra uma issue.
 
-## Instalar no Linux
+## Rodar pelo código no Linux
 
 O painel precisa estar ao lado deste repo (ou no caminho da variável `DUALSENSE_PAINEL`).
 
@@ -59,7 +68,7 @@ cd dualsense-studio
 ./dualsense-studio     # ou "DualSense Studio" no menu
 ```
 
-Precisa de GTK 3 e WebKitGTK 4.0 (`gir1.2-webkit2-4.0`), que já vêm no Ubuntu 22.04. Só um app
+Precisa de GTK 3 e WebKitGTK 4.0 ou 4.1. Só um app
 controla o controle por vez: se o painel já estiver aberto, o Studio avisa e não sobe.
 
 ## Sistemas
