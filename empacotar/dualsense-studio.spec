@@ -25,4 +25,5 @@ if sys.platform == "darwin":
     app = BUNDLE(coll, name="DualSense Studio.app", icon=ICON if os.path.exists(ICON) else None,
                  bundle_identifier="com.ayrames.DualSenseStudio",
                  info_plist={"NSHighResolutionCapable": True,
-                             "NSMicrophoneUsageDescription": "Medir o microfone do controle no teste de áudio."})
+                             "NSMicrophoneUsageDescription": "Medir o microfone do controle no teste de áudio.",
+                             "NSBluetoothAlwaysUsageDescription": "Desligar o controle pelo Bluetooth."})

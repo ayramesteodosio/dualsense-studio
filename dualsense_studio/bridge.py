@@ -37,6 +37,7 @@ class Bridge:
             "connected": s.connected,
             "model": s.model or "DualSense",
             "connection": s.connection,
+            "canDisconnect": s.pode_desligar_bluetooth,
             "battery": {"percent": s.battery_pct, "status": STATUS.get(s.battery_status)},
             "charging": s.charging_mode,
             "audio": {"available": self.audio_available and s.connection == "usb"},

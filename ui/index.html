@@ -2225,7 +2225,7 @@ function renderSettings() {
   setSwitch($('#swShortcut'), cfg.shortcut);
   const lb = $('#lowb-' + cfg.lowBattery); if (lb) lb.checked = true;
   const io = $('#idle-' + cfg.idleOff); if (io) io.checked = true;
-  $('#btCard').hidden = !(S && S.connected && S.connection === 'bluetooth');
+  $('#btCard').hidden = !(S && S.connected && S.connection === 'bluetooth' && S.canDisconnect !== false);
   renderLbMode();
 }
 function renderTesterAvail() {

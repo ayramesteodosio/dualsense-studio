@@ -36,6 +36,7 @@ class FakeSession:
         self.connected = True
         self.model = "DualSense"
         self.connection = "usb"
+        self.pode_desligar_bluetooth = True
         self.battery_pct = 40
         self.battery_status = "Charging"
         self.charging_mode = False
