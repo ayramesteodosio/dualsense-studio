@@ -86,6 +86,7 @@ SEND_JS = (
     "  if (/host=pywebview/.test(location.search) || /DualSenseStudio/.test(navigator.userAgent)) { (window.dsQueue = window.dsQueue || []).push(msg); return; }\n"
     "  Mock.handle(type, payload);\n"
     "}\n"
+    "window.dsSend = send;\n"
     "window.addEventListener('pywebviewready', () => { const q = window.dsQueue || []; window.dsQueue = []; "
     "q.forEach(m => window.pywebview.api.send(m)); });\n"
 )
@@ -195,8 +196,58 @@ def patch_versao(html):
                     lambda m: "  $('#verTxt').textContent = S && S.version && S.version !== '0.0.0' ? S.version : "
                               "'Rodando pelo código';\n" + m.group(1), "texto da versão")
     return sub_once(html, r"</body>",
-                    "<script>document.getElementById('btnUpd').addEventListener('click', () => send('checkUpdate'));"
+                    "<script>document.getElementById('btnUpd').addEventListener('click', () => window.dsSend('checkUpdate'));"
                     "</script></body>", "botão de atualização")
+
+
+FAIXA = (
+    '<div class="upd" id="updBar" hidden role="status"><span id="updTxt"></span>'
+    '<div class="upd-prog" id="updProg" hidden><i id="updFill"></i></div>'
+    '<button class="btn-ghost sm" id="updGo" type="button">Atualizar agora</button>'
+    '<button class="btn-ghost sm" id="updLater" type="button">Depois</button></div>'
+)
+
+FAIXA_CSS = (
+    ".upd{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;margin-bottom:18px;"
+    "border-radius:var(--r-md);background:var(--accent-soft);border:1px solid var(--accent-line)}"
+    ".upd[hidden]{display:none}.upd span{flex:1;font-weight:600}"
+    ".upd-prog{width:160px;height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}"
+    ".upd-prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}"
+)
+
+FAIXA_JS = (
+    "<script>"
+    "function onUpdate(m) {"
+    " const bar = document.getElementById('updBar'), txt = document.getElementById('updTxt'),"
+    " go = document.getElementById('updGo'), later = document.getElementById('updLater'),"
+    " prog = document.getElementById('updProg'), fill = document.getElementById('updFill');"
+    " bar.hidden = false;"
+    " if (m.type === 'update') { window.dsUpdate = m; txt.textContent = 'Versão ' + m.tag + ' disponível.';"
+    " go.textContent = m.canInstall ? 'Atualizar agora' : 'Baixar'; go.hidden = false; go.disabled = false;"
+    " later.hidden = false; prog.hidden = true; }"
+    " else if (m.type === 'updateProgress') { txt.textContent = 'Baixando a versão ' + window.dsUpdate.tag + '...';"
+    " prog.hidden = false; fill.style.width = m.value + '%'; go.hidden = true; later.hidden = true; }"
+    " else if (m.type === 'updateInstalling') { txt.textContent = 'Instalando a versão ' + m.tag +"
+    " '. O Studio fecha e abre de novo sozinho.'; prog.hidden = true; go.hidden = true; later.hidden = true; }"
+    " else if (m.type === 'updateFailed') { txt.textContent = 'Não consegui baixar a atualização (' + m.error + ').';"
+    " prog.hidden = true; go.textContent = 'Abrir a página'; go.disabled = false; go.hidden = false;"
+    " later.hidden = false; window.dsUpdate.canInstall = false; }"
+    "}"
+    "document.getElementById('updGo').addEventListener('click', () =>"
+    " window.dsSend(window.dsUpdate && window.dsUpdate.canInstall ? 'installUpdate' : 'openUpdatePage'));"
+    "document.getElementById('updLater').addEventListener('click', () =>"
+    " { document.getElementById('updBar').hidden = true; });"
+    "</script>"
+)
+
+
+def patch_faixa(html):
+    html = sub_once(html, r'(<main class="main" id="main">)', lambda m: m.group(1) + FAIXA, "faixa de atualização")
+    html = sub_once(html, r"else if \(msg\.type === 'micLevel'\)",
+                    "else if (/^update/.test(msg.type)) onUpdate(msg);\n  else if (msg.type === 'micLevel')",
+                    "mensagens de atualização")
+    html = sub_once(html, r"</style>", FAIXA_CSS + "</style>", "estilo da faixa")
+    return sub_once(html, r"</body>", FAIXA_JS + "</body>", "script da faixa")
 
 
 def patch_estilo(html):
@@ -249,7 +300,7 @@ def main():
         html = f.read()
     html = patch_layers(patch(html)) if "--foto" in sys.argv else patch_marcas(html)
     with open(dst, "w", encoding="utf-8") as f:
-        f.write(patch_host(patch_tester(patch_info(patch_versao(patch_estilo(html))))))
+        f.write(patch_host(patch_tester(patch_info(patch_faixa(patch_versao(patch_estilo(html)))))))
     print(f"ok: {dst}")
 
 

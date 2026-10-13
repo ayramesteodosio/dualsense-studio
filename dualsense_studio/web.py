@@ -3,7 +3,6 @@ import os
 import pathlib
 import sys
 import threading
-import webbrowser
 
 import webview
 
@@ -39,8 +38,7 @@ class Host(Listener):
         self.window = None
         self.ready = False
         self.session = Session(config.load(), self, loop=self.loop)
-        self.bridge = Bridge(self.session, self.emit, save_report=self.save_report,
-                             ao_achar_versao=lambda tag, url: self._nova_versao(tag, url, True))
+        self.bridge = Bridge(self.session, self.emit, save_report=self.save_report, ao_instalar=self.instalar_versao)
 
     def emit(self, message):
         if not self.ready or not self.window:
@@ -118,21 +116,23 @@ class Host(Listener):
         atualizacao.verificar("dualsense-studio", VERSAO, self._nova_versao)
         return repetir
 
-    def _nova_versao(self, tag, url, forcar=False):
-        if (url == getattr(self, "_url_versao", None) and not forcar) or not self.window:
+    def _nova_versao(self, tag, url):
+        if url == getattr(self, "_url_versao", None):
             return
         self._url_versao = url
+        self.loop.idle_add(self.bridge.anunciar_versao, tag, url)
 
-        def perguntar():
-            try:
-                sim = self.window.create_confirmation_dialog(
-                    f"Versão {tag} disponível",
-                    "Há uma versão nova do DualSense Studio. Quer abrir a página de download?")
-            except Exception:
-                sim = False
-            if sim:
-                webbrowser.open(url)
-        threading.Thread(target=perguntar, daemon=True).start()
+    def instalar_versao(self, caminho):
+        if not atualizacao.instalar("dualsense-studio", caminho):
+            return False
+        threading.Timer(0.8, self._fechar).start()
+        return True
+
+    def _fechar(self):
+        try:
+            self.window.destroy()
+        except Exception:
+            os._exit(0)
 
     def shutdown(self):
         self.ready = False

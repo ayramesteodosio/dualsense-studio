@@ -42,6 +42,7 @@ Name: "{autodesktop}\DualSense Studio"; Filename: "{app}\DualSense Studio.exe"; 
 [Run]
 Filename: "{tmp}\HidHide.exe"; StatusMsg: "Instalando o HidHide..."; Flags: shellexec waituntilterminated skipifdoesntexist; Tasks: hidhide
 Filename: "{app}\DualSense Studio.exe"; Description: "{cm:LaunchProgram,DualSense Studio}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\DualSense Studio.exe"; Flags: nowait; Check: WizardSilent
 
 [Code]
 var

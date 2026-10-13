@@ -45,8 +45,7 @@ class Window(Gtk.ApplicationWindow):
         self.add(self.view)
 
         self.session = Session(config.load(), self)
-        self.bridge = Bridge(self.session, self._emit, save_report=self._save_report,
-                             ao_achar_versao=lambda tag, url: GLib.idle_add(app._nova_versao, tag, url, True))
+        self.bridge = Bridge(self.session, self._emit, save_report=self._save_report, ao_instalar=app.instalar_versao)
         self._ready = False
 
         self.view.load_uri(GLib.filename_to_uri(UI))
@@ -182,22 +181,17 @@ class App(Gtk.Application):
                               lambda tag, url: GLib.idle_add(self._nova_versao, tag, url))
         return repetir
 
-    def _nova_versao(self, tag, url, forcar=False):
-        if (url == self._url_versao and not forcar) or not self.window:
-            return False
-        self._url_versao = url
-        dialog = Gtk.MessageDialog(transient_for=self.window, modal=True, message_type=Gtk.MessageType.INFO,
-                                   buttons=Gtk.ButtonsType.NONE, text=f"Versão {tag} disponível")
-        dialog.format_secondary_text("Há uma versão nova do DualSense Studio. Quer abrir a página de download?")
-        dialog.add_buttons("Agora não", Gtk.ResponseType.CANCEL, "Baixar", Gtk.ResponseType.ACCEPT)
-
-        def resposta(d, r):
-            d.destroy()
-            if r == Gtk.ResponseType.ACCEPT:
-                Gtk.show_uri_on_window(self.window, url, Gdk.CURRENT_TIME)
-        dialog.connect("response", resposta)
-        dialog.show()
+    def _nova_versao(self, tag, url):
+        if url != self._url_versao and self.window:
+            self._url_versao = url
+            self.window.bridge.anunciar_versao(tag, url)
         return False
+
+    def instalar_versao(self, caminho):
+        if not atualizacao.instalar("dualsense-studio", caminho):
+            return False
+        GLib.timeout_add(800, lambda: self.quit() and False)
+        return True
 
     def hold_in_background(self):
         if not self._held:

@@ -22,9 +22,10 @@ def _color(value, default):
 
 
 class Bridge:
-    def __init__(self, session, emit, save_report=None, audio_backend=audio, ao_achar_versao=None):
+    def __init__(self, session, emit, save_report=None, audio_backend=audio, ao_instalar=None):
         self.session = session
-        self.ao_achar_versao = ao_achar_versao
+        self.ao_instalar = ao_instalar
+        self.versao_nova = None
         self.cfg = session.cfg
         self.emit = emit
         self.save_report = save_report
@@ -135,6 +136,39 @@ class Bridge:
         self.publish()
         self.publish_info()
         self.publish_history()
+        if self.versao_nova:
+            self.anunciar_versao(*self.versao_nova)
+
+    def anunciar_versao(self, tag, url):
+        self.versao_nova = (tag, url)
+        self.emit({"type": "update", "tag": tag,
+                   "canInstall": bool(self.ao_instalar) and atualizacao.pode_instalar("dualsense-studio")})
+        return False
+
+    def _cmd_openUpdatePage(self, _p):
+        if self.versao_nova:
+            import webbrowser
+            webbrowser.open(self.versao_nova[1])
+
+    def _cmd_installUpdate(self, _p):
+        if not self.versao_nova or not self.ao_instalar:
+            return
+        tag = self.versao_nova[0]
+        laco = self.session.loop
+
+        def avisar(mensagem):
+            laco.idle_add(lambda: self.emit(mensagem) and False)
+
+        def pronto(caminho):
+            avisar({"type": "updateInstalling", "tag": tag})
+            def instalar():
+                if not self.ao_instalar(caminho):
+                    self.emit({"type": "updateFailed", "error": "não deu para instalar sozinho"})
+                return False
+            laco.idle_add(instalar)
+        atualizacao.baixar("dualsense-studio", tag,
+                           lambda f: avisar({"type": "updateProgress", "value": round(f * 100)}),
+                           pronto, lambda erro: avisar({"type": "updateFailed", "error": erro}))
 
     def _cmd_setLightbar(self, p):
         if "color" in p:
@@ -199,10 +233,7 @@ class Bridge:
         laco = self.session.loop
 
         def achou(tag, url):
-            if self.ao_achar_versao:
-                self.ao_achar_versao(tag, url)
-            else:
-                laco.idle_add(lambda: self.emit({"type": "toast", "text": f"Versão {tag} disponível em {url}"}) and False)
+            laco.idle_add(self.anunciar_versao, tag, url)
 
         def nada(encontrou):
             texto = atualizacao.texto_sem_novidade(encontrou, VERSAO)

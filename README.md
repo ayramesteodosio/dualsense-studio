@@ -48,7 +48,7 @@ Pegue o arquivo do seu sistema na [última versão](https://github.com/ayrameste
 | Ubuntu, Debian, Mint e derivados | `dualsense-studio_<versão>_all.deb` | Dois cliques, ou `sudo apt install ./dualsense-studio_*.deb` |
 
 No Windows, o instalador oferece instalar junto o [HidHide](https://github.com/nefarius/HidHide), que deixa o modo
-carregar esconder o controle dos jogos e da Steam. Os apps avisam sozinhos quando sai uma versão nova.
+carregar esconder o controle dos jogos e da Steam. Os apps avisam quando sai uma versão nova e se atualizam com um clique.
 
 O app não tem assinatura digital, então o sistema avisa na primeira vez:
 
