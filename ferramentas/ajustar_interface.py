@@ -68,6 +68,8 @@ def patch_tester(html):
          "tf = 'translate(' + (sx * 9).toFixed(2) + 'px,' + (sy * 9)"),
         (r"\$\('#btCard'\)\.hidden = !\(S && S\.connected && S\.connection === 'bluetooth'\);",
          "$('#btCard').hidden = !(S && S.connected && S.connection === 'bluetooth' && S.canDisconnect !== false);"),
+        (r"const rx = clamp\(-\(MO\.p - MO\.cp\), -55, 55\), ry = clamp\(MO\.r - MO\.cr, -55, 55\);",
+         "const rx = clamp(MO.p - MO.cp, -55, 55), ry = clamp(-(MO.r - MO.cr), -55, 55);"),
         (r"setTimeout\(\(\) => \{ el\.classList\.add\('out'\); setTimeout\(\(\) => el\.remove\(\), 320\); \}, 4200\);",
          "setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, String(text).length > 60 ? 8000 : 4200);"),
     ]

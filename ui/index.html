@@ -2071,7 +2071,7 @@ function drawTouch() {
 }
 
 function paintMotion(now) {
-  const rx = clamp(-(MO.p - MO.cp), -55, 55), ry = clamp(MO.r - MO.cr, -55, 55);
+  const rx = clamp(MO.p - MO.cp, -55, 55), ry = clamp(-(MO.r - MO.cr), -55, 55);
   $('#moTilt').style.transform = 'rotateX(' + rx.toFixed(1) + 'deg) rotateY(' + ry.toFixed(1) + 'deg)';
   if (now - T.lastSpark < 33) return;
   T.lastSpark = now;
