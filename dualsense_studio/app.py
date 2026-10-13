@@ -7,7 +7,10 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-gi.require_version("WebKit2", "4.0")
+try:
+    gi.require_version("WebKit2", "4.0")
+except ValueError:
+    gi.require_version("WebKit2", "4.1")
 from gi.repository import Gdk, Gio, GLib, Gtk, WebKit2
 
 from dualsense_painel import config

@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  windows-macos:
     strategy:
       fail-fast: false
       matrix:
@@ -22,17 +22,19 @@ jobs:
             nome: macos-intel
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: dualsense-studio
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/dualsense-painel
           path: dualsense-painel
-          token: ${{ secrets.PAINEL_TOKEN || github.token }}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Versão
+        shell: bash
+        run: echo "VERSAO=$([[ "$GITHUB_REF" == refs/tags/v* ]] && echo "${GITHUB_REF_NAME#v}" || echo 0.0.0)" >> "$GITHUB_ENV"
       - name: Dependências
         run: |
           python -m pip install --upgrade pip
@@ -47,20 +49,59 @@ jobs:
         env:
           DUALSENSE_PAINEL: ${{ github.workspace }}/dualsense-painel
         run: python -m PyInstaller --noconfirm empacotar/dualsense-studio.spec
-      - name: Compactar (Windows)
+      - name: Instalador (Windows)
         if: runner.os == 'Windows'
-        working-directory: dualsense-studio/dist
-        run: Compress-Archive -Path "DualSense Studio" -DestinationPath "DualSense-Studio-${{ matrix.nome }}.zip"
-      - name: Compactar (macOS)
+        working-directory: dualsense-studio/empacotar
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $env:Path += ";${env:ProgramFiles(x86)}\Inno Setup 6"
+          iscc /DVersao=$env:VERSAO windows.iss
+          Move-Item "../dist/Instalar-DualSense-Studio.exe" "../dist/DualSense-Studio-windows.exe"
+      - name: Imagem de disco (macOS)
         if: runner.os == 'macOS'
         working-directory: dualsense-studio/dist
-        run: ditto -c -k --keepParent "DualSense Studio.app" "DualSense-Studio-${{ matrix.nome }}.zip"
+        run: |
+          mkdir dmg
+          ditto "DualSense Studio.app" "dmg/DualSense Studio.app"
+          ln -s /Applications dmg/Aplicativos
+          hdiutil create -volname "DualSense Studio" -srcfolder dmg -ov -format UDZO "DualSense-Studio-${{ matrix.nome }}.dmg"
       - uses: actions/upload-artifact@v4
         with:
           name: DualSense-Studio-${{ matrix.nome }}
-          path: dualsense-studio/dist/DualSense-Studio-${{ matrix.nome }}.zip
+          path: |
+            dualsense-studio/dist/DualSense-Studio-*.exe
+            dualsense-studio/dist/DualSense-Studio-*.dmg
       - name: Publicar na release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dualsense-studio/dist/DualSense-Studio-${{ matrix.nome }}.zip
+          files: |
+            dualsense-studio/dist/DualSense-Studio-*.exe
+            dualsense-studio/dist/DualSense-Studio-*.dmg
+
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: dualsense-studio
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/dualsense-painel
+          path: dualsense-painel
+      - name: Pacote .deb
+        working-directory: dualsense-studio
+        env:
+          DUALSENSE_PAINEL: ${{ github.workspace }}/dualsense-painel
+        run: |
+          VERSAO=$([[ "$GITHUB_REF" == refs/tags/v* ]] && echo "${GITHUB_REF_NAME#v}" || echo 0.0.0)
+          sh empacotar/deb.sh "$VERSAO"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DualSense-Studio-linux
+          path: dualsense-studio/dist/dualsense-studio_*.deb
+      - name: Publicar na release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dualsense-studio/dist/dualsense-studio_*.deb
