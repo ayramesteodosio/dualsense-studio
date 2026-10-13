@@ -1158,7 +1158,7 @@ function toast(text) {
   el.className = 'toast'; el.textContent = String(text);
   box.appendChild(el);
   while (box.children.length > 4) box.firstChild.remove();
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, 4200);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, String(text).length > 60 ? 8000 : 4200);
 }
 
 function hsvToRgb(h, s) {

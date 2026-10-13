@@ -66,6 +66,8 @@ def patch_tester(html):
         (r"const st = T\.stick\[side\], tf = 'translate\(' \+ \(st\.nx \* 9\)\.toFixed\(2\) \+ 'px,' \+ \(st\.ny \* 9\)",
          "const sx = clamp((IN.sticks[side + 'x'] - 128) / 127.5, -1, 1), sy = clamp((IN.sticks[side + 'y'] - 128) / 127.5, -1, 1), "
          "tf = 'translate(' + (sx * 9).toFixed(2) + 'px,' + (sy * 9)"),
+        (r"setTimeout\(\(\) => \{ el\.classList\.add\('out'\); setTimeout\(\(\) => el\.remove\(\), 320\); \}, 4200\);",
+         "setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, String(text).length > 60 ? 8000 : 4200);"),
     ]
     for pattern, repl in rules:
         html = sub_once(html, pattern, lambda m, r=repl: r, pattern[:40])

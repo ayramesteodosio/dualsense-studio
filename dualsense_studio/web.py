@@ -130,6 +130,7 @@ class Host(Listener):
             webbrowser.open(url)
 
     def shutdown(self):
+        self.ready = False
         try:
             self.loop.call_sync(self._shutdown)
         finally:
