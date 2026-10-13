@@ -636,7 +636,7 @@ nav{gap:14px}
   .cl-scene .cl-lit{animation:none !important}
   .c-mic-led[data-mode="2"]{animation:none;opacity:.6}
 }
-.v.has-sw::before{content:'';display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 1px rgba(255,255,255,.4);margin-right:9px;vertical-align:-1px}</style>
+:root{--bg-deep:#16171a;--bg:#1b1c20;--surface:#222327;--surface-2:#2a2b30;--surface-3:#34353b;--fg:#ebecef;--muted:#9b9da4;--border:rgba(255,255,255,.07);--border-strong:rgba(255,255,255,.13);--accent-soft:color-mix(in srgb,var(--accent) 15%,transparent);--accent-line:color-mix(in srgb,var(--accent) 45%,transparent);--accent-text:color-mix(in srgb,var(--accent) 65%,#fff);--r-lg:12px;--r-md:8px}body{background:var(--bg-deep)}.side{background:#131417;backdrop-filter:none;-webkit-backdrop-filter:none}.brand-mark{box-shadow:none}.nav-btn[aria-current=page]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--accent)}.glass{background:var(--surface);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}.stage{background:#1d1e22}.stage-fx,.halo,.c-sheen,.c-rim,.batt-fill i,.cs-halo{display:none}.ctrl{animation:none}.view.is-active .rise{animation:none}.lb-glow{opacity:calc(var(--glow) * .3)}.vh h1{font-size:26px;letter-spacing:0}.btn-primary,.btn-primary:hover{box-shadow:none;transform:none}.batt-fill{background:var(--accent)}.batt-fill.is-low{background:var(--warn)}.meter-cap i,.tbar i{background:var(--accent)}.wheel,.wheel.sm{box-shadow:0 0 0 1px var(--border-strong)}.sw i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--accent) var(--pct),rgba(255,255,255,.12) var(--pct))}input[type=range]::-webkit-slider-thumb{box-shadow:0 1px 3px rgba(0,0,0,.5)}input[type=range]::-moz-range-thumb{box-shadow:0 1px 3px rgba(0,0,0,.5)}.led[aria-pressed=true] i,.motor.is-on .motor-viz i,.cl-chip .cl-lit{box-shadow:none}.mode input:checked + label{background:var(--accent-soft);box-shadow:none}.cl-style input:checked + label{background:color-mix(in srgb,rgb(var(--cl-rgb)) 14%,transparent)}.charge-meter i{background:var(--orange)}.charge.is-full .charge-meter i{background:var(--success)}.chk.is-now{box-shadow:0 0 0 1px var(--accent-line)}.plot,.motor-viz{background:#17181b}.tpad{background:#26272c}.tpad.is-click{box-shadow:inset 0 0 0 2px var(--accent-text)}.mo-scene{background:#1d1e22}.mo-svg{filter:none}.prof-sw{background:var(--c);box-shadow:none}.btn-primary{border-radius:var(--r-md);height:50px}.toast{background:var(--surface-3);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 6px 18px rgba(0,0,0,.4)}.v.has-sw::before{content:'';display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 1px rgba(255,255,255,.4);margin-right:9px;vertical-align:-1px}</style>
 </head>
 <body>
 
@@ -678,7 +678,6 @@ nav{gap:14px}
     <section class="view" id="view-controle" aria-labelledby="h-controle">
       <header class="vh rise" style="--i:0">
         <h1 id="h-controle">Controle</h1>
-        <p>Bateria, conexão e carga do seu DualSense.</p>
       </header>
       <div class="ctl-grid">
         <div class="rise" style="--i:1" id="slot-controle">
@@ -745,12 +744,11 @@ nav{gap:14px}
     <section class="view" id="view-luzes" aria-labelledby="h-luzes">
       <header class="vh rise" style="--i:0">
         <h1 id="h-luzes">Luzes</h1>
-        <p>Barra de luz, LEDs de jogador e luz do microfone.</p>
       </header>
       <div class="lz-grid">
         <div class="lz-stagecol rise" style="--i:1">
           <div id="slot-luzes"></div>
-          <div class="color-name" aria-live="polite"><b id="colorName">Azul PlayStation</b><span class="mono" id="colorRgb">0 90 255</span></div>
+          <div class="color-name" aria-live="polite"><b id="colorName">Azul</b><span class="mono" id="colorRgb">0 90 255</span></div>
         </div>
         <div class="lz-cards">
           <section class="glass card rise" style="--i:2" aria-labelledby="lbTitle">
@@ -821,7 +819,6 @@ nav{gap:14px}
     <section class="view" id="view-info" aria-labelledby="h-info">
       <header class="vh rise" style="--i:0">
         <h1 id="h-info">Informações</h1>
-        <p>Identificação do controle conectado. Use Copiar para levar qualquer valor.</p>
       </header>
       <section class="glass card info-head rise" style="--i:1">
         <div class="info-mini" aria-hidden="true"><svg class="info-svg" viewBox="250 72 700 474" aria-hidden="true"><use href="#ds-l2" class="c-trig"/><use href="#ds-r2" class="c-trig"/><use href="#ds-shoulders"/><use href="#ds-shell"/><use href="#ds-stick" transform="translate(492.5 310)"/><use href="#ds-stick" transform="translate(706.5 310)"/><use href="#ds-touchpad"/><use href="#ds-strip-l" class="lb"/><use href="#ds-strip-r" class="lb"/></svg></div>
@@ -839,7 +836,6 @@ nav{gap:14px}
       <header class="vh tester-head rise" style="--i:0">
         <div>
           <h1 id="h-teste">Teste do controle</h1>
-          <p>Aperte, gire e toque. Tudo aparece aqui ao vivo.</p>
         </div>
         <div class="tester-tools">
           <div class="hz-chip" role="status" aria-label="Taxa de atualização">
@@ -1016,7 +1012,6 @@ nav{gap:14px}
     <section class="view" id="view-ajustes" aria-labelledby="h-ajustes">
       <header class="vh rise" style="--i:0">
         <h1 id="h-ajustes">Ajustes</h1>
-        <p>Atalhos, avisos e economia de energia.</p>
       </header>
       <section class="glass card rise" style="--i:1" aria-label="Ajustes do controle">
         <div class="trow">
@@ -1088,7 +1083,7 @@ const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
 const root = document.documentElement;
 
 const PRESETS = [
-  ['Azul PlayStation', [0, 90, 255]], ['Branco', [255, 255, 255]], ['Vermelho', [255, 0, 0]],
+  ['Azul', [0, 90, 255]], ['Branco', [255, 255, 255]], ['Vermelho', [255, 0, 0]],
   ['Laranja', [255, 90, 0]], ['Amarelo', [255, 200, 0]], ['Verde', [0, 255, 40]],
   ['Ciano', [0, 220, 255]], ['Roxo', [140, 0, 255]], ['Rosa', [255, 0, 140]]
 ];

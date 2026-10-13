@@ -123,6 +123,62 @@ def patch_marcas(html):
     return sub_once(html, r'<g clip-path="url\(#clipBody\)"><rect [^>]*fill="url\(#psTex\)"[^>]*/></g>', "", "textura")
 
 
+ESTILO = (
+    ":root{--bg-deep:#16171a;--bg:#1b1c20;--surface:#222327;--surface-2:#2a2b30;--surface-3:#34353b;"
+    "--fg:#ebecef;--muted:#9b9da4;--border:rgba(255,255,255,.07);--border-strong:rgba(255,255,255,.13);"
+    "--accent-soft:color-mix(in srgb,var(--accent) 15%,transparent);"
+    "--accent-line:color-mix(in srgb,var(--accent) 45%,transparent);"
+    "--accent-text:color-mix(in srgb,var(--accent) 65%,#fff);--r-lg:12px;--r-md:8px}"
+    "body{background:var(--bg-deep)}"
+    ".side{background:#131417;backdrop-filter:none;-webkit-backdrop-filter:none}"
+    ".brand-mark{box-shadow:none}"
+    ".nav-btn[aria-current=page]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--accent)}"
+    ".glass{background:var(--surface);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}"
+    ".stage{background:#1d1e22}"
+    ".stage-fx,.halo,.c-sheen,.c-rim,.batt-fill i,.cs-halo{display:none}"
+    ".ctrl{animation:none}"
+    ".view.is-active .rise{animation:none}"
+    ".lb-glow{opacity:calc(var(--glow) * .3)}"
+    ".vh h1{font-size:26px;letter-spacing:0}"
+    ".btn-primary,.btn-primary:hover{box-shadow:none;transform:none}"
+    ".batt-fill{background:var(--accent)}.batt-fill.is-low{background:var(--warn)}"
+    ".meter-cap i,.tbar i{background:var(--accent)}"
+    ".wheel,.wheel.sm{box-shadow:0 0 0 1px var(--border-strong)}"
+    ".sw i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}"
+    "input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--accent) var(--pct),"
+    "rgba(255,255,255,.12) var(--pct))}"
+    "input[type=range]::-webkit-slider-thumb{box-shadow:0 1px 3px rgba(0,0,0,.5)}"
+    "input[type=range]::-moz-range-thumb{box-shadow:0 1px 3px rgba(0,0,0,.5)}"
+    ".led[aria-pressed=true] i,.motor.is-on .motor-viz i,.cl-chip .cl-lit{box-shadow:none}"
+    ".mode input:checked + label{background:var(--accent-soft);box-shadow:none}"
+    ".cl-style input:checked + label{background:color-mix(in srgb,rgb(var(--cl-rgb)) 14%,transparent)}"
+    ".charge-meter i{background:var(--orange)}.charge.is-full .charge-meter i{background:var(--success)}"
+    ".chk.is-now{box-shadow:0 0 0 1px var(--accent-line)}"
+    ".plot,.motor-viz{background:#17181b}"
+    ".tpad{background:#26272c}.tpad.is-click{box-shadow:inset 0 0 0 2px var(--accent-text)}"
+    ".mo-scene{background:#1d1e22}.mo-svg{filter:none}"
+    ".prof-sw{background:var(--c);box-shadow:none}"
+    ".btn-primary{border-radius:var(--r-md);height:50px}"
+    ".toast{background:var(--surface-3);backdrop-filter:none;-webkit-backdrop-filter:none;"
+    "box-shadow:0 6px 18px rgba(0,0,0,.4)}"
+)
+
+SUBTITULOS = (
+    "Bateria, conexão e carga do seu DualSense.",
+    "Barra de luz, LEDs de jogador e luz do microfone.",
+    "Identificação do controle conectado. Use Copiar para levar qualquer valor.",
+    "Aperte, gire e toque. Tudo aparece aqui ao vivo.",
+    "Atalhos, avisos e economia de energia.",
+)
+
+
+def patch_estilo(html):
+    for texto in SUBTITULOS:
+        html = sub_once(html, r"\s*<p[^>]*>\s*" + re.escape(texto) + r"\s*</p>", "", texto[:30])
+    html = sub_once(html, r"Azul PlayStation", "Azul", "nome da cor", count=None)
+    return sub_once(html, r"</style>", ESTILO + "</style>", "estilo sóbrio")
+
+
 def patch(html):
     defs = (
         f'<mask id="mLightbar" maskUnits="userSpaceOnUse" x="{PHOTO["x"]}" y="{PHOTO["y"]}" '
@@ -166,7 +222,7 @@ def main():
         html = f.read()
     html = patch_layers(patch(html)) if "--foto" in sys.argv else patch_marcas(html)
     with open(dst, "w", encoding="utf-8") as f:
-        f.write(patch_host(patch_tester(patch_info(html))))
+        f.write(patch_host(patch_tester(patch_info(patch_estilo(html)))))
     print(f"ok: {dst}")
 
 

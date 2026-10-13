@@ -1,47 +1,29 @@
-<div align="center">
-
-<img src="dados/com.ayrames.DualSenseStudio.svg" width="96" alt="">
-
 # DualSense Studio
 
-**O controle do PS5 no computador, com um visual à altura dele.**
-
 [![Empacotar](https://github.com/ayramesteodosio/dualsense-studio/actions/workflows/empacotar.yml/badge.svg)](https://github.com/ayramesteodosio/dualsense-studio/actions/workflows/empacotar.yml)
-![Python](https://img.shields.io/badge/python-3.10%2B-3776ab)
-![Linux](https://img.shields.io/badge/Linux-WebKitGTK-4a86cf)
-![Windows](https://img.shields.io/badge/Windows-WebView2-0078d4)
-![macOS](https://img.shields.io/badge/macOS-WebKit-555555)
+
+Outra interface para o [Painel do DualSense](https://github.com/ayramesteodosio/dualsense-painel), com o
+controle desenhado na tela. O desenho acompanha o controle ao vivo: cor da barra de luz, LEDs, botões
+apertados e pressão dos gatilhos. Toda a parte que conversa com o controle vem do painel; este repo é só a
+interface.
 
 <img src="docs/capturas/controle.png" alt="Aba Controle">
 
-</div>
+## Funções
 
-## O que ele faz
-
-O controle desenhado na tela acompanha tudo ao vivo: a cor da barra de luz, os LEDs, os botões
-apertados e a pressão dos gatilhos.
-
-**🔋 Modo carregar.** No cabo USB, o controle some do sistema, até da Steam, e a barra pulsa enquanto
-carrega. Dá para entrar sozinho ao ligar o cabo ou pelo atalho PS + Options.
-
-**🌈 Luz de carga.** Cor, estilo (respirar, fixa, piscar), duração do ciclo, intensidade e o que fazer
-quando encher. Muda na hora, inclusive carregando.
-
-**💡 Luzes.** Roda de cores para a barra de luz, modo que mostra a bateria, LEDs do jogador, luz do
-microfone e teste de vibração.
-
-**🎯 Gatilhos adaptativos.** Os sete efeitos com gráfico do curso, ajuste de cada parâmetro e pressão
-ao vivo.
-
-**🩺 Teste.** Botões com checklist, analógicos (zona morta, drift, circularidade), gatilhos, touchpad,
-giroscópio e acelerômetro, vibração por motor, áudio (alto-falante, fone e microfone), taxa de
-atualização e relatório de diagnóstico em Markdown.
-
-**🏷️ Informações.** Modelo, cor de fábrica, placa (BDM), número de série, firmware, hardware, MAC,
-conexão e bateria.
-
-**⚙️ E mais.** Perfis, histórico de bateria com estimativa, aviso de bateria baixa e desligamento por
-inatividade no Bluetooth.
+- Modo carregar: no cabo USB, o controle some do sistema, até da Steam, e a barra pulsa enquanto carrega.
+  Pode entrar sozinho ao ligar o cabo ou pelo atalho PS + Options.
+- Luz de carga: cor, estilo (respirar, fixa, piscar), duração do ciclo, intensidade e o que fazer quando
+  encher.
+- Barra de luz com roda de cores, modo que mostra a bateria, LEDs do jogador, luz do microfone e teste de
+  vibração.
+- Gatilhos adaptativos: os sete efeitos, com gráfico do curso e pressão ao vivo.
+- Teste: botões, analógicos (zona morta, drift, circularidade), gatilhos, touchpad, giroscópio,
+  acelerômetro, vibração por motor, áudio (alto-falante, fone e microfone) e taxa de atualização, com
+  relatório em Markdown.
+- Informações: modelo, cor de fábrica, placa (BDM), número de série, firmware, hardware, MAC, conexão e
+  bateria.
+- Perfis, histórico de bateria, aviso de bateria baixa e desligamento por inatividade no Bluetooth.
 
 <table>
 <tr>
@@ -54,9 +36,6 @@ inatividade no Bluetooth.
 </tr>
 </table>
 
-A parte que conversa com o controle vem do [Painel do DualSense](https://github.com/ayramesteodosio/dualsense-painel).
-Este repo é a interface.
-
 ## Baixar
 
 | Sistema | Como |
@@ -65,9 +44,8 @@ Este repo é a interface.
 | Windows | `.zip` em [Releases](https://github.com/ayramesteodosio/dualsense-studio/releases) |
 | macOS (Apple Silicon e Intel) | `.zip` com o `.app` em [Releases](https://github.com/ayramesteodosio/dualsense-studio/releases) |
 
-> [!NOTE]
-> Windows e macOS foram testados com um controle simulado e com o pacote rodando no Linux, mas ainda não
-> em máquinas reais. Se algo não funcionar, abra uma issue.
+Windows e macOS ainda não foram testados em máquinas reais, só com um controle simulado e com o pacote
+rodando no Linux. Se algo não funcionar, abra uma issue.
 
 ## Instalar no Linux
 
@@ -100,8 +78,7 @@ permissão de administrador ao esconder e mostrar o controle.
 Fechar a janela no Windows e no macOS encerra o app e devolve o controle ao sistema. No Linux, no modo
 carregar, o app continua em segundo plano.
 
-<details>
-<summary><b>Como funciona</b></summary>
+## Como funciona
 
 - `ui/fonte/index.html` é a fonte da interface.
 - `ui/index.html` é a interface final, gerada a partir da anterior por
@@ -112,12 +89,12 @@ carregar, o app continua em segundo plano.
   pywebview (Windows e macOS).
 - `dualsense_studio/bridge.py` traduz as mensagens da interface para o `Session` do painel.
 
-**Foto do controle (opcional).** Com `--foto`, o script troca o desenho por uma foto: coloque
+Foto do controle (opcional): Com `--foto`, o script troca o desenho por uma foto: coloque
 `ui/dualsense-base.png` e a máscara da barra de luz `ui/dualsense-lightbar.png` e gere
 `ui/index-foto.html`. Se os três arquivos existirem, o app usa essa versão. Use uma foto sua, não
 material de divulgação da Sony. Por enquanto esses arquivos ficam fora do git.
 
-**Mensagens.** Da interface para o app, `window.webkit.messageHandlers.ds.postMessage(...)` no Linux ou
+Mensagens: Da interface para o app, `window.webkit.messageHandlers.ds.postMessage(...)` no Linux ou
 `window.pywebview.api.send(...)` fora dele, sempre com `JSON.stringify({type, payload})`: `ready`,
 `setLightbar`, `setPlayerLeds`, `setMicLed`, `setTrigger`, `testRumble`, `rumble`, `setCharging`,
 `setChargeGlow`, `setAutoCharge`, `setChargeLight`, `setLightbarMode`, `setShortcut`, `setLowBattery`,
@@ -127,10 +104,7 @@ material de divulgação da Sony. Por enquanto esses arquivos ficam fora do git.
 
 Para depurar a interface dentro do app: `DS_DEVTOOLS=1 ./dualsense-studio` (botão direito, Inspecionar).
 
-</details>
-
-<details>
-<summary><b>Gerar o .exe e o .app</b></summary>
+## Gerar o .exe e o .app
 
 O fluxo `.github/workflows/empacotar.yml` gera os pacotes no GitHub Actions ao criar uma tag `v*` (e
 publica em Releases) ou manualmente pela aba Actions. Ele baixa o `dualsense-painel` da mesma conta.
@@ -144,8 +118,6 @@ DUALSENSE_PAINEL=../dualsense-painel python -m PyInstaller --noconfirm empacotar
 
 Os ícones saem de `dados/com.ayrames.DualSenseStudio.svg` com `python3 ferramentas/gerar_icones.py`
 (precisa de cairosvg e Pillow).
-
-</details>
 
 ## Aviso
 
