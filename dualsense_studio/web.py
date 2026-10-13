@@ -136,8 +136,10 @@ class Host(Listener):
     def instalar_versao(self, caminho):
         if not atualizacao.instalar("dualsense-studio", caminho):
             return False
-        self.saindo = True
-        threading.Timer(0.8, self._fechar).start()
+        reserva = threading.Timer(6, os._exit, (0,))
+        reserva.daemon = True
+        reserva.start()
+        threading.Timer(0.8, self.sair).start()
         return True
 
     def _fechar(self):
@@ -234,6 +236,9 @@ class Host(Listener):
 def main():
     idioma.carregar(os.path.join(os.path.dirname(os.path.abspath(__file__)), "traducoes"))
     idioma.definir(config.load()["idioma"])
+    if segundo_plano.FLAG_SAIR in sys.argv:
+        segundo_plano.enviar("dualsense-studio", "sair")
+        return 0
     escondido = segundo_plano.FLAG in sys.argv
     estado, lock = segundo_plano.obter_controle("dualsense-studio", escondido=escondido)
     if estado == "mostrado" or (estado != "livre" and escondido):

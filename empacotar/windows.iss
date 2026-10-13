@@ -82,6 +82,29 @@ begin
   Baixar := CreateDownloadPage(CustomMessage('BaixandoTitulo'), CustomMessage('BaixandoTexto'), nil);
 end;
 
+function EntendeSair: Boolean;
+var
+  Versao: String;
+begin
+  Result := False;
+  if not RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{9C4A7E2B-1D3F-4A6C-8E5B-7F2A9D1C3E64}_is1', 'DisplayVersion', Versao) then
+    if not RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{9C4A7E2B-1D3F-4A6C-8E5B-7F2A9D1C3E64}_is1', 'DisplayVersion', Versao) then
+      Exit;
+  Result := (Versao <> '') and (Copy(Versao, 1, 4) <> '0.1.') and (Versao <> '0.2.0');
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  Codigo: Integer;
+begin
+  Result := '';
+  if FileExists(ExpandConstant('{app}\DualSense Studio.exe')) and EntendeSair() then
+  begin
+    Exec(ExpandConstant('{app}\DualSense Studio.exe'), '--sair', '', SW_HIDE, ewWaitUntilTerminated, Codigo);
+    Sleep(2500);
+  end;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then

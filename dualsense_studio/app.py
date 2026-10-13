@@ -238,6 +238,9 @@ def main():
     idioma.definir(config.load()["idioma"])
     GLib.set_prgname(APP_ID)
     GLib.set_application_name("DualSense Studio")
+    if segundo_plano.FLAG_SAIR in sys.argv:
+        segundo_plano.enviar("dualsense-studio", "sair")
+        return 0
     app = App()
     argv = [a for a in sys.argv if a != segundo_plano.FLAG]
     if segundo_plano.FLAG in sys.argv:
