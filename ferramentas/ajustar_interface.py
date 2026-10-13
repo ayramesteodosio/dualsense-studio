@@ -166,6 +166,7 @@ ESTILO = (
     ".mo-scene{background:#1d1e22}.mo-svg{filter:none}"
     ".prof-sw{background:var(--c);box-shadow:none}"
     ".btn-primary{border-radius:var(--r-md);height:50px}"
+    "#verCard,#btCard{margin-top:16px}"
     ".toast{background:var(--surface-3);backdrop-filter:none;-webkit-backdrop-filter:none;"
     "box-shadow:0 6px 18px rgba(0,0,0,.4)}"
 )
@@ -177,6 +178,25 @@ SUBTITULOS = (
     "Aperte, gire e toque. Tudo aparece aqui ao vivo.",
     "Atalhos, avisos e economia de energia.",
 )
+
+
+CARTAO_VERSAO = (
+    '<section class="glass card" id="verCard" aria-labelledby="verL"><div class="trow">'
+    '<div><h3 id="verL">Versão do app</h3><p id="verTxt">--</p></div>'
+    '<button class="btn-ghost" id="btnUpd" type="button">Procurar atualizações</button></div></section>'
+)
+
+
+def patch_versao(html):
+    inicio = html.index('id="btCard"')
+    fim = html.index("</section>", inicio) + len("</section>")
+    html = html[:fim] + "\n      " + CARTAO_VERSAO + html[fim:]
+    html = sub_once(html, r"(  \$\('#btCard'\)\.hidden = )",
+                    lambda m: "  $('#verTxt').textContent = S && S.version && S.version !== '0.0.0' ? S.version : "
+                              "'Rodando pelo código';\n" + m.group(1), "texto da versão")
+    return sub_once(html, r"</body>",
+                    "<script>document.getElementById('btnUpd').addEventListener('click', () => send('checkUpdate'));"
+                    "</script></body>", "botão de atualização")
 
 
 def patch_estilo(html):
@@ -229,7 +249,7 @@ def main():
         html = f.read()
     html = patch_layers(patch(html)) if "--foto" in sys.argv else patch_marcas(html)
     with open(dst, "w", encoding="utf-8") as f:
-        f.write(patch_host(patch_tester(patch_info(patch_estilo(html)))))
+        f.write(patch_host(patch_tester(patch_info(patch_versao(patch_estilo(html))))))
     print(f"ok: {dst}")
 
 

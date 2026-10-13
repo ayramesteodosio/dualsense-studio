@@ -39,7 +39,8 @@ class Host(Listener):
         self.window = None
         self.ready = False
         self.session = Session(config.load(), self, loop=self.loop)
-        self.bridge = Bridge(self.session, self.emit, save_report=self.save_report)
+        self.bridge = Bridge(self.session, self.emit, save_report=self.save_report,
+                             ao_achar_versao=lambda tag, url: self._nova_versao(tag, url, True))
 
     def emit(self, message):
         if not self.ready or not self.window:
@@ -117,17 +118,21 @@ class Host(Listener):
         atualizacao.verificar("dualsense-studio", VERSAO, self._nova_versao)
         return repetir
 
-    def _nova_versao(self, tag, url):
-        if url == getattr(self, "_url_versao", None) or not self.window:
+    def _nova_versao(self, tag, url, forcar=False):
+        if (url == getattr(self, "_url_versao", None) and not forcar) or not self.window:
             return
         self._url_versao = url
-        try:
-            sim = self.window.create_confirmation_dialog(
-                f"Versão {tag} disponível", "Há uma versão nova do DualSense Studio. Quer abrir a página de download?")
-        except Exception:
-            sim = False
-        if sim:
-            webbrowser.open(url)
+
+        def perguntar():
+            try:
+                sim = self.window.create_confirmation_dialog(
+                    f"Versão {tag} disponível",
+                    "Há uma versão nova do DualSense Studio. Quer abrir a página de download?")
+            except Exception:
+                sim = False
+            if sim:
+                webbrowser.open(url)
+        threading.Thread(target=perguntar, daemon=True).start()
 
     def shutdown(self):
         self.ready = False

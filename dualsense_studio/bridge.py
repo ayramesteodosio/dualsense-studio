@@ -1,5 +1,7 @@
-from dualsense_painel import audio, charge_light, profiles
+from dualsense_painel import atualizacao, audio, charge_light, profiles
 from dualsense_painel.protocol import MODES_BY_KEY
+
+from .versao import VERSAO
 
 LOW_BATTERY = (0, 10, 15, 20, 25, 30)
 IDLE_OFF = (0, 5, 10, 15, 30)
@@ -20,8 +22,9 @@ def _color(value, default):
 
 
 class Bridge:
-    def __init__(self, session, emit, save_report=None, audio_backend=audio):
+    def __init__(self, session, emit, save_report=None, audio_backend=audio, ao_achar_versao=None):
         self.session = session
+        self.ao_achar_versao = ao_achar_versao
         self.cfg = session.cfg
         self.emit = emit
         self.save_report = save_report
@@ -36,6 +39,7 @@ class Bridge:
             "type": "state",
             "connected": s.connected,
             "model": s.model or "DualSense",
+            "version": VERSAO,
             "connection": s.connection,
             "canDisconnect": s.pode_desligar_bluetooth,
             "battery": {"percent": s.battery_pct, "status": STATUS.get(s.battery_status)},
@@ -190,6 +194,20 @@ class Bridge:
 
     def _cmd_disconnectBluetooth(self, _p):
         self.session.disconnect_bluetooth()
+
+    def _cmd_checkUpdate(self, _p):
+        laco = self.session.loop
+
+        def achou(tag, url):
+            if self.ao_achar_versao:
+                self.ao_achar_versao(tag, url)
+            else:
+                laco.idle_add(lambda: self.emit({"type": "toast", "text": f"Versão {tag} disponível em {url}"}) and False)
+
+        def nada(encontrou):
+            texto = atualizacao.texto_sem_novidade(encontrou, VERSAO)
+            laco.idle_add(lambda: self.emit({"type": "toast", "text": texto}) and False)
+        atualizacao.verificar("dualsense-studio", VERSAO, achou, nada)
 
     def _cmd_saveProfile(self, p):
         name = profiles.save(self.cfg, p.get("name"))
