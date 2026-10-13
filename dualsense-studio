@@ -1,0 +1,4 @@
+#!/bin/sh
+DIR="$(dirname "$(readlink -f "$0")")"
+PAINEL="${DUALSENSE_PAINEL:-$DIR/../dualsense-painel}"
+cd "$DIR" && PYTHONPATH="$PAINEL${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m dualsense_studio "$@"

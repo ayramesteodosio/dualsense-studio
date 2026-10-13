@@ -1,0 +1,7 @@
+build/
+dist/
+__pycache__/
+*.pyc
+ui/index-foto.html
+ui/dualsense-base.png
+ui/dualsense-lightbar.png

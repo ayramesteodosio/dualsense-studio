@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="face" x1="0" y1="8" x2="0" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1d2240"/>
+      <stop offset="1" stop-color="#0a0c18"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="64" cy="22" r="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5b7cff" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#5b7cff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="30" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="strip" x1="0" y1="30" x2="0" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4f8cff"/>
+      <stop offset="1" stop-color="#a66bff"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="36" y1="0" x2="92" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7fb0ff"/>
+      <stop offset="1" stop-color="#c49bff"/>
+    </linearGradient>
+    <filter id="glow" filterUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+      <feGaussianBlur stdDeviation="3.4"/>
+    </filter>
+    <filter id="bloom" filterUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+  </defs>
+  <rect x="8" y="16" width="112" height="104" rx="24" fill="#03040a"/>
+  <rect x="8" y="8" width="112" height="104" rx="24" fill="url(#face)"/>
+  <rect x="8" y="8" width="112" height="104" rx="24" fill="url(#halo)"/>
+  <rect x="8.75" y="8.75" width="110.5" height="102.5" rx="23.25" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1.5"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M25.5 31Q27 66 32.5 88" stroke="url(#strip)" stroke-width="10" opacity="0.9" filter="url(#glow)"/>
+    <path d="M102.5 31Q101 66 95.5 88" stroke="url(#strip)" stroke-width="10" opacity="0.9" filter="url(#glow)"/>
+    <path d="M25.5 31Q27 66 32.5 88" stroke="url(#strip)" stroke-width="6"/>
+    <path d="M102.5 31Q101 66 95.5 88" stroke="url(#strip)" stroke-width="6"/>
+    <path d="M25.5 31Q27 66 32.5 88" stroke="#eef3ff" stroke-width="1.6" opacity="0.85"/>
+    <path d="M102.5 31Q101 66 95.5 88" stroke="#eef3ff" stroke-width="1.6" opacity="0.85"/>
+  </g>
+  <path d="M38 30H90Q95 30 94.6 35Q93 66 88 84Q86.8 88 82 88H46Q41.2 88 40 84Q35 66 33.4 35Q33 30 38 30Z" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.2"/>
+  <path d="M40 31.2H88" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1" stroke-linecap="round"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 60H50.5L55 49L61 71L66.5 44L71.5 64L75 57H88" stroke="#7f9cff" stroke-width="5" opacity="0.8" filter="url(#bloom)"/>
+    <path d="M40 60H50.5L55 49L61 71L66.5 44L71.5 64L75 57H88" stroke="url(#ink)" stroke-width="3.4"/>
+  </g>
+</svg>

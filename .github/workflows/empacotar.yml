@@ -1,0 +1,63 @@
+name: Empacotar
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            nome: windows
+          - os: macos-14
+            nome: macos-arm64
+          - os: macos-15-intel
+            nome: macos-intel
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: dualsense-studio
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dualsense-painel
+          path: dualsense-painel
+          token: ${{ secrets.PAINEL_TOKEN || github.token }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependências
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r dualsense-studio/requirements.txt pyinstaller
+      - name: Testes
+        working-directory: dualsense-studio
+        env:
+          PYTHONPATH: ../dualsense-painel
+        run: python -m unittest discover -s tests -t .
+      - name: PyInstaller
+        working-directory: dualsense-studio
+        env:
+          DUALSENSE_PAINEL: ${{ github.workspace }}/dualsense-painel
+        run: python -m PyInstaller --noconfirm empacotar/dualsense-studio.spec
+      - name: Compactar (Windows)
+        if: runner.os == 'Windows'
+        working-directory: dualsense-studio/dist
+        run: Compress-Archive -Path "DualSense Studio" -DestinationPath "DualSense-Studio-${{ matrix.nome }}.zip"
+      - name: Compactar (macOS)
+        if: runner.os == 'macOS'
+        working-directory: dualsense-studio/dist
+        run: ditto -c -k --keepParent "DualSense Studio.app" "DualSense-Studio-${{ matrix.nome }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DualSense-Studio-${{ matrix.nome }}
+          path: dualsense-studio/dist/DualSense-Studio-${{ matrix.nome }}.zip
+      - name: Publicar na release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dualsense-studio/dist/DualSense-Studio-${{ matrix.nome }}.zip
