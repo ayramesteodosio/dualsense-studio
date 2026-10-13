@@ -14,7 +14,8 @@ cat > "$APPS/com.ayrames.DualSenseStudio.desktop" <<DESKTOP
 [Desktop Entry]
 Type=Application
 Name=DualSense Studio
-Comment=Luz, gatilhos adaptativos e modo carregar do controle do PS5
+Comment=Light bar, adaptive triggers and charging mode for the PS5 controller
+Comment[pt_BR]=Luz, gatilhos adaptativos e modo carregar do controle do PS5
 Exec=$DIR/dualsense-studio
 Icon=$HOME/.local/share/icons/hicolor/scalable/apps/com.ayrames.DualSenseStudio.svg
 StartupWMClass=com.ayrames.DualSenseStudio

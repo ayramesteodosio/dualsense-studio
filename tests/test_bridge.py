@@ -1,6 +1,8 @@
+import os
 import unittest
 
-from dualsense_painel import config
+from dualsense_painel import config, idioma
+from dualsense_studio import bridge
 from dualsense_studio.bridge import Bridge
 
 
@@ -152,6 +154,19 @@ class NewCommandsTest(Base):
         self.assertIn(("rumble", 255, 10, 5000), self.session.calls)
         self.assertEqual(self.audio.played, ["speaker"])
         self.assertEqual(self.saved, [("r.md", "# ok")])
+
+    def test_language_switches_live(self):
+        idioma.carregar(os.path.join(os.path.dirname(bridge.__file__), "traducoes"))
+        self.addCleanup(idioma.definir, "pt")
+        self.bridge.handle({"type": "setLanguage", "payload": {"value": "en"}})
+        self.bridge.handle({"type": "setLanguage", "payload": {"value": "fr"}})
+        state = self.sent[-1]
+        self.assertEqual(self.session.cfg["idioma"], "en")
+        self.assertEqual((state["lang"], state["settings"]["language"]), ("en", "en"))
+        self.assertEqual(self.session.calls, ["changed"])
+        self.audio.play_tone = lambda target: False
+        self.bridge.handle({"type": "audioTone", "payload": {"target": "speaker"}})
+        self.assertEqual(self.sent[-1]["text"], "Controller audio not found. It needs to be on the USB cable.")
 
     def test_input_message_shape(self):
         data = {"sticks": {"lx": 1, "ly": 2, "rx": 3, "ry": 4}, "triggers": {"l2": 5, "r2": 6},

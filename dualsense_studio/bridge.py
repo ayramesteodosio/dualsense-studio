@@ -1,6 +1,7 @@
 import os
 
-from dualsense_painel import atualizacao, audio, charge_light, profiles, segundo_plano
+from dualsense_painel import atualizacao, audio, charge_light, idioma, profiles, segundo_plano
+from dualsense_painel.idioma import _
 from dualsense_painel.protocol import MODES_BY_KEY
 
 from .versao import VERSAO
@@ -44,6 +45,7 @@ class Bridge:
             "connected": s.connected,
             "model": s.model or "DualSense",
             "version": VERSAO,
+            "lang": idioma.atual(),
             "connection": s.connection,
             "canDisconnect": s.pode_desligar_bluetooth,
             "battery": {"percent": s.battery_pct, "status": STATUS.get(s.battery_status)},
@@ -57,6 +59,7 @@ class Bridge:
                 "micLed": c["mic_led"],
                 "autoCharge": c["auto_charge"],
                 "lightbarMode": c["lightbar_mode"],
+                "language": c["idioma"],
                 "shortcut": c["shortcut"],
                 "background": c["segundo_plano"],
                 "autostart": segundo_plano.ativo("dualsense-studio"),
@@ -168,7 +171,7 @@ class Bridge:
             avisar({"type": "updateInstalling", "tag": tag})
             def instalar():
                 if not self.ao_instalar(caminho):
-                    self.emit({"type": "updateFailed", "error": "não deu para instalar sozinho"})
+                    self.emit({"type": "updateFailed", "error": _("não deu para instalar sozinho")})
                 return False
             laco.idle_add(instalar)
         atualizacao.baixar("dualsense-studio", tag,
@@ -226,8 +229,14 @@ class Bridge:
         try:
             segundo_plano.definir("dualsense-studio", bool(p.get("on")), raiz)
         except OSError as e:
-            self.emit({"type": "toast", "text": f"Não consegui mudar: {e.strerror or e}"})
+            self.emit({"type": "toast", "text": _("Não consegui mudar: {erro}").format(erro=e.strerror or e)})
         self.publish()
+
+    def _cmd_setLanguage(self, p):
+        if p.get("value") in idioma.IDIOMAS:
+            self.cfg["idioma"] = p["value"]
+            idioma.definir(p["value"])
+            self._changed()
 
     def _cmd_quitApp(self, _p):
         if self.ao_sair:
@@ -265,14 +274,14 @@ class Bridge:
         name = profiles.save(self.cfg, p.get("name"))
         if name:
             self._changed()
-            self.emit({"type": "toast", "text": f"Perfil \"{name}\" salvo"})
+            self.emit({"type": "toast", "text": _("Perfil \"{nome}\" salvo").format(nome=name)})
         else:
-            self.emit({"type": "toast", "text": "Não deu para salvar o perfil"})
+            self.emit({"type": "toast", "text": _("Não deu para salvar o perfil")})
 
     def _cmd_applyProfile(self, p):
         if profiles.apply(self.cfg, p.get("name")):
             self._changed()
-            self.emit({"type": "toast", "text": f"Perfil \"{p.get('name')}\" aplicado"})
+            self.emit({"type": "toast", "text": _("Perfil \"{nome}\" aplicado").format(nome=p.get("name"))})
 
     def _cmd_deleteProfile(self, p):
         if profiles.delete(self.cfg, p.get("name")):
@@ -283,7 +292,7 @@ class Bridge:
         if target not in (self.audio.SPEAKER, self.audio.HEADPHONES):
             return
         if not self.audio.play_tone(target):
-            self.emit({"type": "toast", "text": "Áudio do controle não encontrado. Ele precisa estar no cabo USB."})
+            self.emit({"type": "toast", "text": _("Áudio do controle não encontrado. Ele precisa estar no cabo USB.")})
 
     def _cmd_micStart(self, _p):
         if self.mic:
@@ -291,7 +300,7 @@ class Bridge:
         self.mic = self.audio.MicMeter(lambda level: self.emit({"type": "micLevel", "level": round(level, 3)}))
         if not self.mic.start():
             self.mic = None
-            self.emit({"type": "toast", "text": "Microfone do controle não encontrado"})
+            self.emit({"type": "toast", "text": _("Microfone do controle não encontrado")})
 
     def _cmd_micStop(self, _p):
         self.stop_mic()

@@ -1,3 +1,4 @@
+import glob
 import os
 import sys
 
@@ -11,7 +12,11 @@ a = Analysis(
     datas=[(os.path.join(ROOT, "ui", f), "ui") for f in ("index.html", "index-foto.html", "dualsense-base.png",
                                                           "dualsense-lightbar.png")
            if os.path.exists(os.path.join(ROOT, "ui", f))]
-          + [(os.path.join(ROOT, "empacotar", "icones", "dualsense-studio.png"), "icones")],
+          + [(os.path.join(ROOT, "empacotar", "icones", "dualsense-studio.png"), "icones")]
+          + [(f, os.path.join("dualsense_painel", "traducoes"))
+             for f in glob.glob(os.path.join(PAINEL, "dualsense_painel", "traducoes", "*.json"))]
+          + [(f, os.path.join("dualsense_studio", "traducoes"))
+             for f in glob.glob(os.path.join(ROOT, "dualsense_studio", "traducoes", "*.json"))],
     hiddenimports=["dualsense_studio.web", "dualsense_painel.backends.hidapi_backend",
                    "dualsense_painel.backends.hidhide", "dualsense_painel.audio_portable", "hid", "pystray", "pystray._win32", "pystray._darwin", "PIL"],
     excludes=([] if sys.platform.startswith("linux") else ["gi"]) + ["dualsense_studio.app", "dualsense_painel.app",

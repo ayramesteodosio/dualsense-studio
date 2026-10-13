@@ -13,7 +13,8 @@ except ValueError:
     gi.require_version("WebKit2", "4.1")
 from gi.repository import Gdk, Gio, GLib, Gtk, WebKit2
 
-from dualsense_painel import atualizacao, config, segundo_plano
+from dualsense_painel import atualizacao, config, idioma, segundo_plano
+from dualsense_painel.idioma import _
 from dualsense_painel.session import Session
 
 from .bridge import Bridge
@@ -38,7 +39,10 @@ class Window(Gtk.ApplicationWindow):
         manager.connect("script-message-received::ds", self._on_message)
         manager.register_script_message_handler("ds")
         self.view = WebKit2.WebView.new_with_user_content_manager(manager)
-        self.view.get_settings().set_enable_developer_extras(bool(os.environ.get("DS_DEVTOOLS")))
+        ajustes = self.view.get_settings()
+        ajustes.set_enable_developer_extras(bool(os.environ.get("DS_DEVTOOLS")))
+        if idioma.atual() == "en":
+            ajustes.set_user_agent(ajustes.get_user_agent() + " DSLang/en")
         self.view.set_background_color(Gdk.RGBA(0.02, 0.03, 0.06, 1))
         if not os.environ.get("DS_DEVTOOLS"):
             self.view.connect("context-menu", lambda *_: True)
@@ -90,13 +94,13 @@ class Window(Gtk.ApplicationWindow):
         self.bridge.publish_history()
 
     def low_battery(self, pct):
-        n = Gio.Notification.new("Bateria do controle baixa")
-        n.set_body(f"O DualSense está com {pct}%. Hora de ligar no cabo.")
+        n = Gio.Notification.new(_("Bateria do controle baixa"))
+        n.set_body(_("O DualSense está com {pct}%. Hora de ligar no cabo.").format(pct=pct))
         self.app.send_notification("bateria-baixa", n)
 
     def _save_report(self, name, content):
-        dialog = Gtk.FileChooserNative.new("Salvar relatório", self, Gtk.FileChooserAction.SAVE,
-                                           "Salvar", "Cancelar")
+        dialog = Gtk.FileChooserNative.new(_("Salvar relatório"), self, Gtk.FileChooserAction.SAVE,
+                                           _("Salvar"), _("Cancelar"))
         dialog.set_do_overwrite_confirmation(True)
         dialog.set_current_name(os.path.basename(name))
         docs = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DOCUMENTS)
@@ -107,17 +111,17 @@ class Window(Gtk.ApplicationWindow):
             try:
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(content)
-                self.toast(f"Relatório salvo em {path}")
+                self.toast(_("Relatório salvo em {path}").format(path=path))
             except OSError as e:
-                self.toast(f"Não consegui salvar: {e.strerror}")
+                self.toast(_("Não consegui salvar: {erro}").format(erro=e.strerror))
         dialog.destroy()
 
     def toast(self, text):
         self._emit({"type": "toast", "text": text})
 
     def charged(self):
-        n = Gio.Notification.new("Controle carregado")
-        n.set_body("Pode tirar do cabo ou voltar ao modo normal.")
+        n = Gio.Notification.new(_("Controle carregado"))
+        n.set_body(_("Pode tirar do cabo ou voltar ao modo normal."))
         self.app.send_notification("carregado", n)
 
     def _on_close(self, *_args):
@@ -143,8 +147,8 @@ class App(Gtk.Application):
 
     def _busy(self):
         dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.CLOSE,
-                                   text="O controle já está sendo usado")
-        dialog.format_secondary_text("Não consegui assumir o controle. Feche o outro app do DualSense e tente de novo.")
+                                   text=_("O controle já está sendo usado"))
+        dialog.format_secondary_text(_("Não consegui assumir o controle. Feche o outro app do DualSense e tente de novo."))
         self.add_window(dialog)
         dialog.connect("response", lambda d, _r: d.destroy())
         dialog.show()
@@ -223,13 +227,15 @@ class App(Gtk.Application):
             self._held = True
         if avisar and not self._avisou_fundo:
             self._avisou_fundo = True
-            n = Gio.Notification.new("O Studio continua rodando")
-            n.set_body("Abra o DualSense Studio pelo menu para ver a janela. Para fechar de vez, "
-                       "use Sair do app nos Ajustes.")
+            n = Gio.Notification.new(_("O Studio continua rodando"))
+            n.set_body(_("Abra o DualSense Studio pelo menu para ver a janela. Para fechar de vez, "
+                         "use Sair do app nos Ajustes."))
             self.send_notification("segundo-plano", n)
 
 
 def main():
+    idioma.carregar(os.path.join(os.path.dirname(os.path.abspath(__file__)), "traducoes"))
+    idioma.definir(config.load()["idioma"])
     GLib.set_prgname(APP_ID)
     GLib.set_application_name("DualSense Studio")
     app = App()

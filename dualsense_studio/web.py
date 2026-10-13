@@ -7,7 +7,8 @@ import time
 
 import webview
 
-from dualsense_painel import atualizacao, config, plataforma, segundo_plano
+from dualsense_painel import atualizacao, config, idioma, plataforma, segundo_plano
+from dualsense_painel.idioma import _
 from dualsense_painel.loop import ThreadLoop
 from dualsense_painel.session import Listener, Session
 
@@ -94,10 +95,10 @@ class Host(Listener):
         self.emit({"type": "toast", "text": text})
 
     def charged(self):
-        self.toast("Controle carregado. Pode tirar do cabo ou voltar ao modo normal.")
+        self.toast(_("Controle carregado. Pode tirar do cabo ou voltar ao modo normal."))
 
     def low_battery(self, pct):
-        self.toast(f"Bateria do controle baixa: {pct}%")
+        self.toast(_("Bateria do controle baixa: {pct}%").format(pct=pct))
 
     def save_report(self, name, content):
         def ask():
@@ -111,9 +112,9 @@ class Host(Listener):
             try:
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(content)
-                self.toast(f"Relatório salvo em {path}")
+                self.toast(_("Relatório salvo em {path}").format(path=path))
             except OSError as e:
-                self.toast(f"Não consegui salvar: {e.strerror}")
+                self.toast(_("Não consegui salvar: {erro}").format(erro=e.strerror))
         threading.Thread(target=ask, daemon=True).start()
 
     def start(self):
@@ -167,8 +168,8 @@ class Host(Listener):
         if self.icone and not self._avisou_fundo:
             self._avisou_fundo = True
             try:
-                self.icone.notify("Ele segue no ícone perto do relógio. Para fechar de vez, use Sair.",
-                                  "O Studio continua rodando")
+                self.icone.notify(_("Ele segue no ícone perto do relógio. Para fechar de vez, use Sair."),
+                                  _("O Studio continua rodando"))
             except Exception:
                 pass
 
@@ -186,10 +187,10 @@ class Host(Listener):
             self.loop.idle_add(lambda: self.session.set_charging(not self.session.charging_mode) or False)
 
         menu = pystray.Menu(
-            pystray.MenuItem("Abrir o Studio", lambda: self.comando_canal("mostrar"), default=True),
-            pystray.MenuItem(lambda _i: "Voltar ao modo normal" if self.session.charging_mode
-                             else "Entrar no modo carregar", alternar_carga),
-            pystray.MenuItem("Sair", lambda: self.sair()))
+            pystray.MenuItem(lambda _i: _("Abrir o Studio"), lambda: self.comando_canal("mostrar"), default=True),
+            pystray.MenuItem(lambda _i: _("Voltar ao modo normal") if self.session.charging_mode
+                             else _("Entrar no modo carregar"), alternar_carga),
+            pystray.MenuItem(lambda _i: _("Sair"), lambda: self.sair()))
         try:
             self.icone = pystray.Icon("dualsense-studio", imagem, "DualSense Studio", menu)
             self.icone.run_detached()
@@ -231,6 +232,8 @@ class Host(Listener):
 
 
 def main():
+    idioma.carregar(os.path.join(os.path.dirname(os.path.abspath(__file__)), "traducoes"))
+    idioma.definir(config.load()["idioma"])
     escondido = segundo_plano.FLAG in sys.argv
     estado, lock = segundo_plano.obter_controle("dualsense-studio", escondido=escondido)
     if estado == "mostrado" or (estado != "livre" and escondido):
@@ -238,8 +241,9 @@ def main():
     if lock is None:
         webview.create_window("DualSense Studio", html=(
             "<body style='font:15px system-ui;background:#0b0e18;color:#e6e8ef;display:grid;place-items:center;"
-            "height:100vh;margin:0'><div style='text-align:center'><h2>O controle já está sendo usado</h2>"
-            "<p>Não consegui assumir o controle. Feche o outro app do DualSense e tente de novo.</p></div></body>"),
+            "height:100vh;margin:0'><div style='text-align:center'><h2>{}</h2><p>{}</p></div></body>").format(
+            _("O controle já está sendo usado"),
+            _("Não consegui assumir o controle. Feche o outro app do DualSense e tente de novo.")),
             width=480, height=240)
         webview.start()
         return 1
@@ -251,5 +255,6 @@ def main():
     window.events.closing += host.ao_fechar
     segundo_plano.Canal("dualsense-studio", lock, host.comando_canal)
     host.bandeja()
-    webview.start(host.start, debug=bool(os.environ.get("DS_DEVTOOLS")), user_agent=USER_AGENT)
+    webview.start(host.start, debug=bool(os.environ.get("DS_DEVTOOLS")),
+                  user_agent=USER_AGENT + (" DSLang/en" if idioma.atual() == "en" else ""))
     return 0

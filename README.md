@@ -7,6 +7,12 @@ controle desenhado na tela. O desenho acompanha o controle ao vivo: cor da barra
 apertados e pressão dos gatilhos. Toda a parte que conversa com o controle vem do painel; este repo é só a
 interface.
 
+**In English:** another interface for the [DualSense Panel](https://github.com/ayramesteodosio/dualsense-painel),
+with the controller drawn on screen and following the real one live. Charging mode hides the controller from
+Steam and games while it charges, and you can set the light bar, adaptive triggers and profiles and test the
+whole controller. Windows, macOS and Linux, in English and Portuguese (follows the system language).
+Downloads are on the [latest release](https://github.com/ayramesteodosio/dualsense-studio/releases/latest).
+
 <img src="docs/capturas/controle.png" alt="Aba Controle">
 
 ## Funções
@@ -24,6 +30,7 @@ interface.
 - Informações: modelo, cor de fábrica, placa (BDM), número de série, firmware, hardware, MAC, conexão e
   bateria.
 - Perfis, histórico de bateria, aviso de bateria baixa e desligamento por inatividade no Bluetooth.
+- Português e inglês: segue o idioma do sistema, e dá para trocar nos Ajustes.
 - Segundo plano: ao fechar a janela o app continua rodando (dá para desligar nos Ajustes), com modo
   carregar automático, avisos de bateria e atalho funcionando. "Iniciar com o sistema" é opcional, no
   instalador do Windows ou nos Ajustes. Só um app usa o controle por vez: abrir o outro faz o primeiro

@@ -25,7 +25,8 @@ cat > "$PKG/usr/share/applications/com.ayrames.DualSenseStudio.desktop" <<'DESKT
 [Desktop Entry]
 Type=Application
 Name=DualSense Studio
-Comment=Luz, gatilhos adaptativos e modo carregar do controle do PS5
+Comment=Light bar, adaptive triggers and charging mode for the PS5 controller
+Comment[pt_BR]=Luz, gatilhos adaptativos e modo carregar do controle do PS5
 Exec=dualsense-studio
 Icon=com.ayrames.DualSenseStudio
 StartupWMClass=com.ayrames.DualSenseStudio

@@ -13,6 +13,7 @@ AppPublisherURL=https://github.com/ayramesteodosio/dualsense-studio
 DefaultDirName={autopf}\DualSense Studio
 DefaultGroupName=DualSense Studio
 DisableProgramGroupPage=yes
+ShowLanguageDialog=auto
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\dist
@@ -27,11 +28,28 @@ ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+Name: "en"; MessagesFile: "compiler:Default.isl"
+
+[CustomMessages]
+ptbr.Complementos=Complementos:
+en.Complementos=Extras:
+ptbr.Autostart=Iniciar com o Windows (abre escondido, para o modo carregar e os avisos funcionarem sozinhos)
+en.Autostart=Start with Windows (opens hidden, so charging mode and alerts work on their own)
+ptbr.HidHide=Instalar o HidHide (recomendado): no modo carregar, esconde o controle dos jogos e da Steam
+en.HidHide=Install HidHide (recommended): hides the controller from games and Steam in charging mode
+ptbr.InstalandoHidHide=Instalando o HidHide...
+en.InstalandoHidHide=Installing HidHide...
+ptbr.BaixandoTitulo=Baixando o HidHide
+en.BaixandoTitulo=Downloading HidHide
+ptbr.BaixandoTexto=Aguarde enquanto o HidHide é baixado do site oficial.
+en.BaixandoTexto=Please wait while HidHide is downloaded from its official site.
+ptbr.FalhaBaixar=Não consegui baixar o HidHide (%1). O app será instalado sem ele.
+en.FalhaBaixar=Couldn't download HidHide (%1). The app will be installed without it.
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "autostart"; Description: "Iniciar com o Windows (abre escondido, para o modo carregar e os avisos funcionarem sozinhos)"; GroupDescription: "Complementos:"; Flags: unchecked
-Name: "hidhide"; Description: "Instalar o HidHide (recomendado): no modo carregar, esconde o controle dos jogos e da Steam"; GroupDescription: "Complementos:"; Check: not HidHideInstalado
+Name: "autostart"; Description: "{cm:Autostart}"; GroupDescription: "{cm:Complementos}"; Flags: unchecked
+Name: "hidhide"; Description: "{cm:HidHide}"; GroupDescription: "{cm:Complementos}"; Check: not HidHideInstalado
 
 [Files]
 Source: "..\dist\DualSense Studio\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -45,7 +63,7 @@ Name: "{autoprograms}\DualSense Studio"; Filename: "{app}\DualSense Studio.exe"
 Name: "{autodesktop}\DualSense Studio"; Filename: "{app}\DualSense Studio.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{tmp}\HidHide.exe"; StatusMsg: "Instalando o HidHide..."; Flags: shellexec waituntilterminated skipifdoesntexist; Tasks: hidhide
+Filename: "{tmp}\HidHide.exe"; StatusMsg: "{cm:InstalandoHidHide}"; Flags: shellexec waituntilterminated skipifdoesntexist; Tasks: hidhide
 Filename: "{app}\DualSense Studio.exe"; Description: "{cm:LaunchProgram,DualSense Studio}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\DualSense Studio.exe"; Flags: nowait; Check: WizardSilent
 
@@ -61,7 +79,7 @@ end;
 
 procedure InitializeWizard;
 begin
-  Baixar := CreateDownloadPage('Baixando o HidHide', 'Aguarde enquanto o HidHide é baixado do site oficial.', nil);
+  Baixar := CreateDownloadPage(CustomMessage('BaixandoTitulo'), CustomMessage('BaixandoTexto'), nil);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -82,7 +100,7 @@ begin
       try
         Baixar.Download;
       except
-        SuppressibleMsgBox('Não consegui baixar o HidHide (' + GetExceptionMessage + '). O app será instalado sem ele.', mbError, MB_OK, IDOK);
+        SuppressibleMsgBox(FmtMessage(CustomMessage('FalhaBaixar'), [GetExceptionMessage]), mbError, MB_OK, IDOK);
       end;
     finally
       Baixar.Hide;

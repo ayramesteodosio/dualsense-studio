@@ -1,3 +1,5 @@
+import json
+import os
 import re
 import sys
 
@@ -109,6 +111,7 @@ def patch_info(html):
                     "['serial', 'Número de série'], ", "lista SPEC")
     html = sub_once(html, r"  if \(k === 'model'\) return ",
                     "  if (k === 'color') { const i = INFO || {}; if (!i.colorPt && !i.colorCode) return null; "
+                    "if (i.colorPt && i.color && document.documentElement.lang === 'en') return i.color; "
                     "return i.colorPt ? i.colorPt + (i.color && i.color !== i.colorPt ? ' (' + i.color + ')' : '') "
                     ": 'Código ' + i.colorCode; }\n  if (k === 'model') return ", "specValue cor")
     html = sub_once(html, r"(function renderInfo\(\) \{\n)",
@@ -116,7 +119,8 @@ def patch_info(html):
                     "swEl.classList.toggle('has-sw', !!hex); swEl.style.setProperty('--sw', hex || 'transparent'); }\n",
                     "renderInfo")
     html = sub_once(html, r"\$\('#infoConn'\)\.textContent = S && S\.connected \? \(specValue\('connection'\) \|\| ''\)",
-                    "$('#infoConn').textContent = S && S.connected ? [INFO && INFO.colorPt, INFO && INFO.board, "
+                    "$('#infoConn').textContent = S && S.connected ? [INFO && (document.documentElement.lang === 'en' "
+                    "&& INFO.color || INFO.colorPt), INFO && INFO.board, "
                     "specValue('connection')].filter(Boolean).join(' · ')", "subtítulo")
     html = sub_once(html, r"'- Modelo: ' \+ v\('model'\), ",
                     "'- Modelo: ' + v('model'), '- Cor de fábrica: ' + v('color'), '- Placa: ' + v('board'), "
@@ -169,7 +173,7 @@ ESTILO = (
     ".mo-scene{background:#1d1e22}.mo-svg{filter:none}"
     ".prof-sw{background:var(--c);box-shadow:none}"
     ".btn-primary{border-radius:var(--r-md);height:50px}"
-    "#verCard,#btCard,#bgCard{margin-top:16px}"
+    "#verCard,#btCard,#bgCard,#langCard{margin-top:16px}"
     ".toast{background:var(--surface-3);backdrop-filter:none;-webkit-backdrop-filter:none;"
     "box-shadow:0 6px 18px rgba(0,0,0,.4)}"
 )
@@ -184,6 +188,13 @@ SUBTITULOS = (
 
 
 CARTAO_FUNDO = (
+    '<section class="glass card" id="langCard" aria-labelledby="langL"><div class="trow wrap">'
+    '<div><h3 id="langL">Idioma</h3><p>Automático segue o idioma do sistema.</p></div>'
+    '<fieldset class="seg"><legend class="sr">Idioma</legend><div class="seg-row">'
+    '<input type="radio" name="lang" id="lang-auto" value="auto"><label for="lang-auto">Automático</label>'
+    '<input type="radio" name="lang" id="lang-pt" value="pt"><label for="lang-pt">Português</label>'
+    '<input type="radio" name="lang" id="lang-en" value="en"><label for="lang-en">English</label>'
+    '</div></fieldset></div></section>'
     '<section class="glass card" id="bgCard" aria-label="Segundo plano">'
     '<div class="trow"><div><h3 id="bgL">Continuar rodando ao fechar a janela</h3>'
     '<p id="bgD">Modo carregar automático, avisos de bateria e atalho seguem funcionando.</p></div>'
@@ -212,7 +223,8 @@ def patch_versao(html):
                               "'Rodando pelo código';\n"
                               "  { const st = (S && S.settings) || {}; "
                               "$('#swBg').setAttribute('aria-checked', String(st.background !== false)); "
-                              "$('#swAuto').setAttribute('aria-checked', String(!!st.autostart)); }\n" + m.group(1),
+                              "$('#swAuto').setAttribute('aria-checked', String(!!st.autostart)); "
+                              "const lg = $('#lang-' + (st.language || 'auto')); if (lg) lg.checked = true; }\n" + m.group(1),
                     "texto da versão")
     return sub_once(html, r"</body>",
                     "<script>document.getElementById('btnUpd').addEventListener('click', () => window.dsSend('checkUpdate'));"
@@ -221,6 +233,8 @@ def patch_versao(html):
                     " el.addEventListener('click', () => { const on = el.getAttribute('aria-checked') !== 'true';"
                     " el.setAttribute('aria-checked', String(on)); window.dsSend(tipo, { on }); }); }"
                     "document.getElementById('btnQuit').addEventListener('click', () => window.dsSend('quitApp'));"
+                    "document.querySelectorAll('input[name=lang]').forEach(r => r.addEventListener('change', () =>"
+                    " window.dsSend('setLanguage', { value: r.value })));"
                     "</script></body>", "botão de atualização")
 
 
@@ -281,6 +295,111 @@ def patch_estilo(html):
     return sub_once(html, r"</style>", ESTILO + "</style>", "estilo sóbrio")
 
 
+TRADUCOES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui", "fonte",
+                         "traducao-en.json")
+
+TRADUTOR_JS = """<script>
+(() => {
+const D = __DADOS__;
+const textos = D.textos, contextos = D.contextos || [], padroes = D.padroes.map(([f, t]) => [new RegExp(f), t]);
+const volta = {};
+for (const k in textos) if (!(textos[k] in volta)) volta[textos[k]] = k;
+for (const [, m] of contextos) for (const k in m) if (!(m[k] in volta)) volta[m[k]] = k;
+const ATTRS = ['aria-label', 'title', 'placeholder', 'alt', 'aria-valuetext'];
+const ua = navigator.userAgent;
+const host = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ds) || /DualSenseStudio/.test(ua) || /host=pywebview/.test(location.search);
+const base = /DSLang\\/en/.test(ua) ? 'en' : host || /^pt/i.test(navigator.language || '') ? 'pt' : 'en';
+let lang = base;
+function tr(t, el, n) {
+  for (const [sel, m] of contextos) if (el && m[t] != null && el.closest(sel)) return m[t];
+  if (textos[t] != null) return textos[t];
+  n = n || 0;
+  if (n > 5) return t;
+  for (const [re, mod] of padroes) {
+    const r = re.exec(t);
+    if (r) return mod.replace(/\\$(\\d)/g, (_, i) => tr(r[+i] || '', null, n + 1));
+  }
+  if (t.includes(', ')) {
+    const p = t.split(', '), q = p.map(x => tr(x, null, n + 1));
+    if (q.some((x, i) => x !== p[i])) return q.join(', ');
+  }
+  return t;
+}
+function trocar(v, rec, el) {
+  if (!rec || (v !== rec.pt && v !== rec.en)) {
+    const m = /^(\\s*)([\\s\\S]*?)(\\s*)$/.exec(v);
+    if (!m[2]) return null;
+    const pt = textos[m[2]] == null && volta[m[2]] != null ? volta[m[2]] : m[2];
+    rec = { pt: m[1] + pt + m[3], en: m[1] + tr(pt, el) + m[3] };
+  }
+  return rec;
+}
+const memo = new WeakMap(), memoAttr = new WeakMap();
+function texto(node) {
+  const el = node.parentElement;
+  if (!el || el.nodeName === 'SCRIPT' || el.nodeName === 'STYLE' || el.closest('[translate=no]')) return;
+  const rec = trocar(node.data, memo.get(node), el);
+  if (!rec) return;
+  memo.set(node, rec);
+  const quer = lang === 'en' ? rec.en : rec.pt;
+  if (node.data !== quer) node.data = quer;
+}
+function atributo(el, a) {
+  const v = el.getAttribute(a);
+  if (v == null || el.closest('[translate=no]')) return;
+  let recs = memoAttr.get(el);
+  if (!recs) memoAttr.set(el, recs = {});
+  const rec = trocar(v, recs[a], el);
+  if (!rec) return;
+  recs[a] = rec;
+  const quer = lang === 'en' ? rec.en : rec.pt;
+  if (v !== quer) el.setAttribute(a, quer);
+}
+function varrer(raiz) {
+  if (raiz.nodeType === 3) { texto(raiz); return; }
+  if (raiz.nodeType !== 1 && raiz.nodeType !== 9) return;
+  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) texto(n);
+  const sel = ATTRS.map(a => '[' + a + ']').join(',');
+  const els = raiz.nodeType === 1 && raiz.matches(sel) ? [raiz] : [];
+  els.push(...raiz.querySelectorAll(sel));
+  for (const el of els) for (const a of ATTRS) if (el.hasAttribute(a)) atributo(el, a);
+}
+function marcar() { document.documentElement.lang = lang === 'en' ? 'en' : 'pt-BR'; }
+window.dsTr = t => lang === 'en' ? tr(String(t)) : t;
+window.dsLang = l => {
+  const novo = l === 'en' || l === 'pt' ? l : base;
+  if (novo === lang) return;
+  lang = novo; marcar(); varrer(document);
+};
+marcar();
+varrer(document);
+new MutationObserver(ms => {
+  for (const m of ms) {
+    if (m.type === 'characterData') texto(m.target);
+    else if (m.type === 'attributes') atributo(m.target, m.attributeName);
+    else m.addedNodes.forEach(varrer);
+  }
+}).observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+})();
+</script>
+"""
+
+
+def patch_idioma(html):
+    with open(TRADUCOES, encoding="utf-8") as f:
+        dados = json.dumps(json.load(f), ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    html = sub_once(html, r"\n<script>\n\(\(\) => \{\n'use strict';",
+                    lambda m: "\n" + TRADUTOR_JS.replace("__DADOS__", dados) + m.group(0)[1:], "script principal")
+    html = sub_once(html, r"  if \(msg\.type === 'state'\) onState\(msg\);",
+                    "  if (msg.type === 'state') { window.dsLang(msg.lang); onState(msg); }", "mensagem de estado")
+    html = sub_once(html, r"return \{ filename: fn, content: lines\.join\('\\n'\) \};",
+                    lambda m: "return { filename: window.dsTr(fn), content: lines.map(window.dsTr).join('\\n') };", "relatório")
+    return sub_once(html, r"      default: return;\n",
+                    "      case 'setLanguage': s.language = p.value; st.lang = p.value === 'auto' ? undefined : p.value; break;\n"
+                    "      default: return;\n", "idioma no Mock")
+
+
 def patch(html):
     defs = (
         f'<mask id="mLightbar" maskUnits="userSpaceOnUse" x="{PHOTO["x"]}" y="{PHOTO["y"]}" '
@@ -324,7 +443,7 @@ def main():
         html = f.read()
     html = patch_layers(patch(html)) if "--foto" in sys.argv else patch_marcas(html)
     with open(dst, "w", encoding="utf-8") as f:
-        f.write(patch_host(patch_tester(patch_info(patch_faixa(patch_versao(patch_estilo(html)))))))
+        f.write(patch_idioma(patch_host(patch_tester(patch_info(patch_faixa(patch_versao(patch_estilo(html))))))))
     print(f"ok: {dst}")
 
 
